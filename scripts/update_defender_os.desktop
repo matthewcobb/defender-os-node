@@ -1,0 +1,10 @@
+# nano ~/.local/share/applications/update_defender_os.desktop
+
+[Desktop Entry]
+Name=Update Defender OS
+Comment=Download and install the latest Defender OS AppImage
+Exec=/home/pi/update_app_image.sh
+Icon=system-software-update  # Or specify a custom icon path
+Terminal=true  # Set to false if you don’t want to open a terminal
+Type=Application
+Categories=Other;

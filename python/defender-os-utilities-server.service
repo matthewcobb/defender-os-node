@@ -1,0 +1,12 @@
+[Unit]
+Description=Gunicorn instance to serve Flask DefenderOS Server
+After=network.target
+
+[Service]
+User=pi
+Group=www-data
+WorkingDirectory=/home/pi/defender-os-node/python
+ExecStart=/home/pi/defender-os-node/python/env/bin/gunicorn -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:5000 server:app --log-level debug --access-logfile -
+
+[Install]
+WantedBy=multi-user.target

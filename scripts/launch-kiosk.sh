@@ -1,0 +1,2 @@
+#!/bin/bash
+chromium-browser http://localhost:3000 --no-sandbox --disable-web-security --disable-webusb-security --disable-extensions --autoplay-policy=no-user-gesture-required --window-size=1600,600 --start-fullscreen &

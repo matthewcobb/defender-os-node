@@ -1,0 +1,19 @@
+[Desktop Entry]
+Name=Defender OS
+Exec=/home/pi/defender-os-node/scripts/launch-kiosk.sh
+Icon=system-software-update
+Terminal=false
+Type=Application
+Categories=Other;
+
+
+
+
+
+
+
+
+
+
+
+
