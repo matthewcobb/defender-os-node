@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import vue from '@vitejs/plugin-vue';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
 
@@ -12,7 +12,7 @@ import corsHeadersPlugin from './plugins/corsHeadersPlugin';
 export default defineConfig({
   plugins: [
     copyWorkletPlugin,
-    react(),
+    vue(),
     nodePolyfills({
       include: ['buffer', 'process', 'stream'],
       protocolImports: true,

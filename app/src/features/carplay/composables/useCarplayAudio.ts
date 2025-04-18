@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { AudioCommand, AudioData, WebMicrophone, decodeTypeMap } from 'node-carplay/web';
 import { PcmPlayer } from 'pcm-ringbuf-player';
 import { AudioPlayerKey, CarPlayWorker } from '../../../workers/types';
@@ -7,11 +7,11 @@ import { createAudioPlayerKey } from '../../../workers/utils';
 const defaultAudioVolume = 1;
 const defaultNavVolume = 0.5;
 
-export const useCarplayAudio = (worker: CarPlayWorker, microphonePort: MessagePort) => {
-  const [mic, setMic] = useState<WebMicrophone | null>(null);
-  const [audioPlayers] = useState(new Map<AudioPlayerKey, PcmPlayer>());
+export function useCarplayAudio(worker: CarPlayWorker, microphonePort: MessagePort) {
+  const mic = ref<WebMicrophone | null>(null);
+  const audioPlayers = new Map<AudioPlayerKey, PcmPlayer>();
 
-  const getAudioPlayer = useCallback((audio: AudioData): PcmPlayer => {
+  const getAudioPlayer = (audio: AudioData): PcmPlayer => {
     const { decodeType, audioType } = audio;
     const format = decodeTypeMap[decodeType];
     const audioKey = createAudioPlayerKey(decodeType, audioType);
@@ -30,9 +30,9 @@ export const useCarplayAudio = (worker: CarPlayWorker, microphonePort: MessagePo
       },
     });
     return player;
-  }, [audioPlayers, worker]);
+  };
 
-  const processAudio = useCallback((audio: AudioData) => {
+  const processAudio = (audio: AudioData) => {
     if (audio.volumeDuration) {
       const { volume, volumeDuration } = audio;
       const player = getAudioPlayer(audio);
@@ -50,35 +50,40 @@ export const useCarplayAudio = (worker: CarPlayWorker, microphonePort: MessagePo
           break;
       }
     }
-  }, [getAudioPlayer]);
+  };
 
-  useEffect(() => {
-    const initMic = async () => {
-      try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        const mic = new WebMicrophone(mediaStream, microphonePort);
-        setMic(mic);
-      } catch (err) {
-        console.error('Failed to init microphone', err);
-      }
-    };
+  const initMic = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      const microphone = new WebMicrophone(mediaStream, microphonePort);
+      mic.value = microphone;
+    } catch (err) {
+      console.error('Failed to init microphone', err);
+    }
+  };
 
+  const startRecording = () => {
+    mic.value?.start();
+  };
+
+  const stopRecording = () => {
+    mic.value?.stop();
+  };
+
+  onMounted(() => {
     initMic();
+  });
 
-    return () => {
-      audioPlayers.forEach(p => p.stop());
-    };
-  }, [audioPlayers, worker, microphonePort]);
+  onBeforeUnmount(() => {
+    audioPlayers.forEach(p => p.stop());
+  });
 
-  const startRecording = useCallback(() => {
-    mic?.start();
-  }, [mic]);
-
-  const stopRecording = useCallback(() => {
-    mic?.stop();
-  }, [mic]);
-
-  return { processAudio, getAudioPlayer, startRecording, stopRecording };
-};
+  return {
+    processAudio,
+    getAudioPlayer,
+    startRecording,
+    stopRecording
+  };
+}
