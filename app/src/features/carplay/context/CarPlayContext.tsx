@@ -5,6 +5,10 @@ import { useCarplayAudio } from '../hooks/useCarplayAudio';
 import { useCarplayTouch } from '../hooks/useCarplayTouch';
 import { InitEvent } from '../../../workers/render/RenderEvents';
 
+// Import workers using Vite's worker syntax
+import RenderWorker from '../../../workers/render/Render.worker.ts?worker';
+import CarPlayWorkerModule from '../../../workers/carplay/CarPlay.worker.ts?worker';
+
 interface CarPlayContextType {
   isPlugged: boolean;
   deviceFound: boolean | null;
@@ -49,9 +53,8 @@ export const CarPlayProvider: React.FC<CarPlayProviderProps> = ({ children, widt
 
   const renderWorker = useMemo(() => {
     if (!canvasElement) return null;
-    const worker = new Worker(
-      new URL('../../../workers/render/Render.worker.ts', import.meta.url)
-    );
+    // Use the imported worker constructor directly
+    const worker = new RenderWorker();
     const canvas = canvasElement.transferControlToOffscreen();
     worker.postMessage(new InitEvent(canvas, videoChannel.port2), [
       canvas,
@@ -61,9 +64,8 @@ export const CarPlayProvider: React.FC<CarPlayProviderProps> = ({ children, widt
   }, [canvasElement, videoChannel.port2]);
 
   const carplayWorker = useMemo(() => {
-    const worker = new Worker(
-      new URL('../../../workers/carplay/CarPlay.worker.ts', import.meta.url)
-    ) as CarPlayWorker;
+    // Use the imported worker constructor directly
+    const worker = new CarPlayWorkerModule() as CarPlayWorker;
     const payload = {
       videoPort: videoChannel.port1,
       microphonePort: micChannel.port1,
