@@ -6,10 +6,10 @@ import CarplayWeb, {
   SendTouch,
   findDevice,
 } from 'node-carplay/web'
-import { AudioPlayerKey, Command } from './types'
-import { RenderEvent } from './render/RenderEvents'
+import { AudioPlayerKey, Command } from '../types'
+import { RenderEvent } from '../render/RenderEvents'
 import { RingBuffer } from 'ringbuf.js'
-import { createAudioPlayerKey } from './utils'
+import { createAudioPlayerKey } from '../utils'
 
 let carplayWeb: CarplayWeb | null = null
 let videoPort: MessagePort | null = null
