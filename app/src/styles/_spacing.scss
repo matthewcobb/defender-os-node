@@ -1,0 +1,24 @@
+@mixin generate-spacing-classes($direction, $shorthand) {
+  @each $size, $value in ('05': 0.5rem, '1': 1rem, '2': 2rem) {
+    .m#{$shorthand}-#{$size} {
+      margin-#{$direction}: $value;
+    }
+
+    .p#{$shorthand}-#{$size} {
+      padding-#{$direction}: $value;
+    }
+  }
+}
+
+@include generate-spacing-classes('bottom', 'b');
+@include generate-spacing-classes('top', 't');
+@include generate-spacing-classes('left', 'l');
+@include generate-spacing-classes('right', 'r');
+
+.pt-0 {
+  padding-top: 0;
+}
+
+.pb-0 {
+  padding-bottom: 0;
+}

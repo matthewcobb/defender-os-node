@@ -1,0 +1,33 @@
+.panel {
+  border-radius: 0.75rem;
+  background: var(--panel-bg);
+  box-shadow: var(--box-shadow);
+  padding: 1rem;
+  box-sizing: border-box;
+  width: 100%;
+  border: 0.125rem solid transparent;
+  transition: opacity 0.5s ease;
+  opacity: 1;
+
+  &.charging {
+    animation: flash 7s infinite;
+    animation-timing-function: ease-in-out;
+  }
+
+  @keyframes flash {
+    0% {
+      background: var(--panel-bg);
+      box-shadow: var(--box-shadow);
+    }
+    30% {
+      border-color: var(--charging-base);
+      background-color: var(--panel-charging);
+      box-shadow: 0 0 3rem var(--charging-dark);
+    }
+    60% {
+      border-color: var(--panel-bg);
+      background-color: var(--panel-bg);
+      box-shadow: var(--box-shadow);
+    }
+  }
+}

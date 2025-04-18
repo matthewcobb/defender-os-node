@@ -1,4 +1,6 @@
 // Plugin to add CORS headers for cross-origin isolation
+// This is required for the stream buffer to work.
+
 const corsHeadersPlugin = {
   name: 'configure-response-headers',
   configureServer(server) {

@@ -1,5 +1,4 @@
 import React from 'react';
-import './App.css';
 import { CarPlayProvider } from './features/carplay/context/CarPlayContext';
 import { CarPlayDisplay } from './features/carplay/components/CarPlayDisplay';
 

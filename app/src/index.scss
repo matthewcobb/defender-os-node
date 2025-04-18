@@ -1,0 +1,256 @@
+:root {
+  --body-bg: #000000;
+  --carplay-bg: #000000;
+  --top-bar-bg: rgba(18, 25, 21, 0.764);
+  --active-carplay: #00e448;
+  --box-shadow: 0 0.25rem 0.5rem 0 rgba(0, 0, 0, 0.3);
+  --container-border-radius: 1rem;
+  --text-secondary: #aecbb8;
+  --panel-bg: rgba(153, 188, 165, 0.15);
+  --panel-charging: rgb(15, 99, 47);
+  --charging-base: #00e448;
+  --charging-dark: #04542c;
+}
+
+@import './styles/type';
+@import './styles/panel';
+@import './styles/grid';
+@import './styles/spacing';
+@import './styles/border';
+@import './styles/progress';
+
+@import './styles/components/loading-video';
+@import './styles/components/launcher';
+
+.App {
+  animation: app-entrance 2s ease-in-out;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  font-family: 'Rubik';
+  font-size: 20px;
+}
+
+body {
+  background-color: var(--body-bg);
+  color: white;
+}
+
+#app {
+  position: relative;
+  height: 100vh;
+  touch-action: none;
+  display: grid;
+  grid-template-columns: 33% auto;
+  gap: 1rem;
+  overflow: hidden;
+  transition: 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  &.drawer-open {
+    grid-template-columns: 66vw auto;
+
+    aside {
+      opacity: 0.2;
+    }
+  }
+
+  main {
+    // background-image: radial-gradient(circle at 50% 50%, #44534A 0%, #202A24 100%);
+    background: linear-gradient(-45deg, #7c9386, #44534A, #202A24, #0e1310);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    height: 100vh;
+
+    @keyframes gradient {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    height: 100vh;
+    box-sizing: content-box;
+    position: relative;
+    box-shadow: var(--box-shadow);
+    display: grid;
+    border-radius: 1rem;
+    grid-template-rows: min-content auto min-content;
+    overflow-x: hidden;
+
+    // Styling the scrollbar
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .top-bar {
+      backdrop-filter: blur(0.5rem);
+      background-color: var(--top-bar-bg);
+      position: sticky;
+      top: 0;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr auto auto;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      width: 100%;
+      box-sizing: border-box;
+      letter-spacing: 0.125rem;
+      font-size: 0.75rem;
+      z-index: 10;
+    }
+
+    .page-container {
+      height: calc(100% - 2rem);
+      box-sizing: border-box;
+      padding: 1rem;
+      container-type: inline-size;
+
+      .page {
+        padding-bottom: 0;
+      }
+    }
+
+    nav {
+      backdrop-filter: blur(0.5rem);
+      position: sticky;
+      bottom: 0rem;
+      padding: 0 0 0 1rem;
+      background: var(--panel-bg);
+      box-shadow: var(--box-shadow);
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr auto;
+
+      .MuiTabs-root {
+        position: relative;
+      }
+
+      .MuiButtonBase-root {
+        // min-width: 0;
+      }
+
+      .MuiTab-root {
+        color: var(--top-bar-bg);
+      }
+
+      .Mui-selected {
+        color: white !important;
+      }
+
+      .MuiTabs-indicator {
+        background-color: white;
+      }
+
+      .active {
+        border-top: 0.125rem solid var(--active-carplay);
+      }
+    }
+  }
+
+  .home-panels {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    transition: opacity 0.5s ease;
+    opacity: 1;
+
+    &.disconnected {
+      opacity: 0.5;
+    }
+  }
+
+  .toggle {
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1;
+    padding: 0 1rem;
+    // background-color: rgba(0,0,0, 0.2);
+
+    .icon {
+      transition: transform 0.2s ease;
+    }
+
+    &.drawer-open {
+      .icon {
+        transform: rotate(180deg);
+
+        svg {
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+
+  aside {
+    background-color: var(--carplay-bg);
+    border-radius: var(--container-border-radius);
+    overflow: hidden;
+    transition: opacity 0.2s ease-in-out;
+
+    #carplay-container {
+      height: 100%;
+      width: 100%;
+
+      .loading {
+        height: 100%;
+        width: 100%;
+        display: grid;
+        justify-content: center;
+        align-items: center;
+
+        video {
+          height: 100%;
+          margin: 0 auto;
+        }
+      }
+
+      #videoContainer {
+        height: 100%;
+      }
+    }
+  }
+}
+
+.fade-in-fast {
+  animation: fade-in 0.25s ease-in-out;
+}
+
+.fade-in-slow {
+  animation: fade-in 3s ease-in-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 100;
+  }
+}
+
+@keyframes app-entrance {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 100;
+    transform: scale(1);
+  }
+}

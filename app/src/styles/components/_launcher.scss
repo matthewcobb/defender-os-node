@@ -1,0 +1,19 @@
+.launcher {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: 1rem;
+
+  .app {
+    .icon {
+      background-color: var(--top-bar-bg);
+      box-shadow: var(--box-shadow);
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 0.75rem;
+      transition: 0.5s ease box-shadow;
+      &:hover {
+        box-shadow: 0 0 1rem var(--charging-base);
+      }
+    }
+  }
+}

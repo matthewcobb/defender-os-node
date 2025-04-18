@@ -34,7 +34,6 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    // Add CORS headers similar to setupProxy.js via a custom plugin
   },
   publicDir: 'public'
 });

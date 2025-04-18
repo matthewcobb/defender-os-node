@@ -1,6 +1,9 @@
 const path = require('path');
 const fs = require('fs');
 
+// The worklets attempt to load at http://localhost:3000/audio.worklet.js
+// This plugin copies the worklet files to the public directory so that node-carplay can load them.
+
 // Copy worklet files to public directory
 const copyWorkletPlugin = {
   name: 'copy-worklet-plugin',

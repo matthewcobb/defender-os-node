@@ -1,0 +1,28 @@
+h1, h2, h3 {
+  margin: 0rem;
+  font-weight: 500;
+  + p {
+    margin-top: 0.5rem;
+  }
+}
+
+b, strong {
+  font-weight: 500;
+}
+
+p {
+  font-size: 1rem;
+  margin: 0rem;
+  + h2 {
+    margin-top: 0.5rem;
+  }
+}
+
+.monospace {
+  font-weight: bold;
+  font-family: Courier, monospace;
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}

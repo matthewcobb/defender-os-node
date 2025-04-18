@@ -1,0 +1,14 @@
+.loading-video {
+  position: relative;
+  .message {
+    position: absolute;
+    bottom: 0.4rem;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-transform: uppercase;
+    letter-spacing: 0.125rem;
+    color: var(--top-bar-bg);
+    opacity: 0.6;
+    mix-blend-mode: overlay;
+  }
+}

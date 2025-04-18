@@ -1,0 +1,48 @@
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  position: relative;
+
+  .cell {
+    flex: 1;
+  }
+
+  .cell-shrink {
+    flex: 0 1 auto;
+  }
+
+  &.grid-middle {
+    align-items: center;
+  }
+
+  &.gutter-1 {
+    gap: 1rem;
+  }
+
+  &.gutter-2 {
+    gap: 2rem;
+  }
+
+  &.justify-between {
+    justify-content: space-between;
+  }
+}
+
+.grid-column {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.p-relative {
+  position: relative;
+}
+
+.grid-col-span-2 {
+  grid-column: span 2;
+}
+
+.grid-row-span-2 {
+  grid-column: span 2;
+}
