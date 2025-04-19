@@ -13,7 +13,12 @@ RESET='\033[0m'  # Reset color to default
 # Update and install dependencies
 echo -e "${BLUE}Updating and installing dependencies...${RESET}"
 sudo apt update
-sudo apt install -y git chromium-browser libudev-dev curl python3-pip python3-venv plymouth
+sudo apt install -y chromium-browser libudev-dev curl python3-pip python3-venv plymouth
+
+# # Install Wayfire Plugins
+# sudo cp scripts/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so /usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so
+# sudo cp scripts/wayfire/usr/share/wayfire/metadata/hide-cursor.xml /usr/share/wayfire/metadata/hide-cursor.xml
+# sudo cp scripts/wayfire/wayfire.ini ~/.config/wayfire.ini
 
 # Install NVM (Node Version Manager)
 echo -e "${BLUE}Installing NVM...${RESET}"
@@ -45,23 +50,18 @@ npm install -g pm2  # Install pm2 globally using npm
 
 # Ensure pm2 is started as a systemd service
 echo -e "${YELLOW}Enabling pm2 service on boot...${RESET}"
+VERSION=$(node -v)
 # sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
-sudo env PATH=$PATH:/home/pi/.nvm/versions/node/v20.19.0/bin /home/pi/.nvm/versions/node/v20.19.0/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
+sudo env PATH=$PATH:/home/pi/.nvm/versions/node/$VERSION/bin /home/pi/.nvm/versions/node/$VERSION/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
 
 # Ensure NVM is sourced for pm2 in systemd startup
-echo -e "${YELLOW}Configuring pm2 to use NVM...${RESET}"
+# echo -e "${YELLOW}Configuring pm2 to use NVM...${RESET}"
 # Add NVM sourcing to pm2 startup command
 # sudo sed -i 's/ExecStart=\/usr\/bin\/node/ExecStart=\/bin\/bash -c "source \/home\/pi\/.bashrc && pm2 start"/g' /etc/systemd/system/pm2-pi.service
 
 # Disable the desktop environment (no graphical environment until Chromium starts)
 # echo -e "${YELLOW}Disabling desktop environment...${RESET}"
 # sudo systemctl set-default multi-user.target
-
-# Clone your Node.js app repository from GitHub
-echo -e "${BLUE}Cloning repository from GitHub...${RESET}"
-GITHUB_REPO_URL="https://github.com/matthewcobb/defender-os-node.git"
-CLONE_DIR="/home/pi/defender-os-node"
-# git clone "$GITHUB_REPO_URL" "$CLONE_DIR"
 
 # Navigate to the app directory and run npm install to install dependencies
 echo -e "${BLUE}Installing Node.js dependencies in the app directory...${RESET}"
@@ -104,8 +104,8 @@ echo -e "${YELLOW}Enabling and starting defender-os-utilities-server service...$
 sudo systemctl enable defender-os-utilities-server.service
 sudo systemctl start defender-os-utilities-server.service
 
-# Copy start-x.service from the scripts directory to the correct location
-echo -e "${BLUE}Copying defender-os-kiosk.service to autostart...${RESET}"
+# Copy defender-os.desktop for autostart
+echo -e "${BLUE}Copying defender-os.desktop to autostart...${RESET}"
 sudo cp "$CLONE_DIR/scripts/defender-os.desktop" ~/.config/autoload/defender-os.desktop
 
 # Create udev rule for CarLinkit device
