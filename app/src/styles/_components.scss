@@ -10,17 +10,24 @@
   gap: 1rem;
 }
 
-.battery-level {
-  height: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  overflow: hidden;
+.level-container {
+  background: var(--panel-bg);
+  border-radius: 50cqh;
+  width: 100%;
 }
 
 .level {
   height: 100%;
   border-radius: 10px;
   transition: width 0.5s ease;
+  text-align: center;
+  padding: 0.25rem 1rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+  box-sizing: border-box;
+  min-width: 100px;
+  border-radius: 50cqh;
+  overflow: hidden;
 }
 
 .solar .level {
@@ -62,7 +69,6 @@
 .stat {
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 .label {
@@ -73,5 +79,5 @@
 
 .value {
   font-size: 1.1rem;
-  font-weight: bold;
+  font-weight: 500;
 }

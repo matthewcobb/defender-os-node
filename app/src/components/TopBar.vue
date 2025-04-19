@@ -3,8 +3,10 @@
     <p class="app-name">
       DEFENDER<span class="fgColor-muted">OS</span>
     </p>
-    <p class="font-monospace">{{ error ? '--' : temp }}ºC</p>
-    <p class="font-monospace">{{ formattedTime }}</p>
+    <div class="top-bar-right">
+      <p class="font-monospace">{{ error ? '--' : temp }}ºC</p>
+      <p class="font-monospace">{{ formattedTime }}</p>
+    </div>
   </div>
 </template>
 
@@ -57,6 +59,12 @@ onUnmounted(() => {
   background-color: var(--top-bar-bg);
   padding: 0 1rem;
   height: var(--top-bar-height);
+
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
 
   .app-name {
     font-weight: 600;

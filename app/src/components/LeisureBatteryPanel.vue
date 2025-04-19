@@ -2,23 +2,18 @@
   <div class="panel leisure">
     <div class="panel-header">
       <h2>Battery</h2>
-      <Battery class="leisure" />
+      <BatteryMedium class="leisure" :size="32" />
     </div>
     <div v-if="error" class="error-state">
-      <p>{{ error }}</p>
+      <p>Connecting...</p>
     </div>
     <div v-else class="battery-info">
-      <div class="battery-level">
-        <div class="level" :style="{ width: batteryPercentage + '%' }"></div>
+      <div class="level-container">
+        <div class="level" :style="{ width: batteryPercentage + '%' }">
+          {{ batteryPercentage }}%
+        </div>
       </div>
       <div class="battery-details">
-        <div class="stat">
-          <span class="label">Charge</span>
-          <span class="value">
-            <BatteryCharging :size="16" class="icon" />
-            {{ batteryPercentage }}%
-          </span>
-        </div>
         <div class="stat">
           <span class="label">Voltage</span>
           <span class="value">
@@ -33,8 +28,7 @@
             {{ batteryData?.current || '0' }}A
           </span>
         </div>
-      </div>
-      <div class="additional-details">
+
         <div class="stat">
           <span class="label">Capacity</span>
           <span class="value">
@@ -56,7 +50,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Battery, BatteryCharging, Gauge, ArrowRight, BarChart2, Thermometer } from 'lucide-vue-next';
+import { BatteryMedium, BatteryCharging, Gauge, ArrowRight, BarChart2, Thermometer } from 'lucide-vue-next';
 
 const props = defineProps({
   batteryData: {
