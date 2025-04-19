@@ -1,6 +1,6 @@
 <template>
   <div class="settings-view">
-    <h1>Settings mate</h1>
+    <h1>Settings</h1>
 
     <div class="settings-section">
       <h2>System Maintenance</h2>
