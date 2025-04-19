@@ -1,11 +1,13 @@
 :root {
   --body-bg: #000000;
-  --carplay-bg: #000000;
+  --primary: #7de429;
+  --translucent: rgba(0, 0, 0, 0.5);
   --top-bar-bg: rgba(18, 25, 21, 0.764);
   --active-carplay: #00e448;
   --box-shadow: 0 0.25rem 0.5rem 0 rgba(0, 0, 0, 0.3);
   --container-border-radius: 1rem;
-  --text-secondary: #aecbb8;
+  --fgColor-base: #ffffff;
+  --fgColor-muted: #aecbb8;
   --panel-bg: rgba(153, 188, 165, 0.15);
   --panel-charging: rgb(15, 99, 47);
   --charging-base: #00e448;
@@ -39,5 +41,23 @@ body,
 
 body {
   background-color: var(--body-bg);
-  color: white;
+  color: var(--fgColor-base);
+}
+
+
+.font-monospace {
+  font-family: monospace;
+  margin: 0;
+}
+
+.fgColor-primary {
+  color: var(--primary);
+}
+
+.fgColor-muted {
+  color: var(--fgColor-muted);
+}
+
+.small {
+  font-size: 0.8rem;
 }

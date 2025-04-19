@@ -83,7 +83,7 @@ export function useCarplay(width: number, height: number) {
 
   // Setup worker message handler
   function setupWorkerMessageHandler() {
-    carplayWorker.onmessage = (ev: MessageEvent) => {
+    carplayWorker.onmessage = ((ev: MessageEvent) => {
       const { type } = ev.data;
       switch (type) {
         case 'plugged':
@@ -120,7 +120,7 @@ export function useCarplay(width: number, height: number) {
           }
           break;
       }
-    };
+    }) as any;
   }
 
   // Setup USB event handlers

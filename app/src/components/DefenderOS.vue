@@ -1,5 +1,6 @@
 <template>
   <div class="defender-os">
+    <TopBar />
     <nav class="tab-nav">
       <router-link to="/home" class="tab">Home</router-link>
       <router-link to="/settings" class="tab">Settings</router-link>
@@ -12,6 +13,7 @@
 </template>
 
 <script setup lang="ts">
+import TopBar from './TopBar.vue';
 // DefenderOS component serves as a container for various subpages
 </script>
 
@@ -22,26 +24,49 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #222;
+  background: linear-gradient(-45deg, #7c9386, #44534A, #202A24, #0e1310);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
   color: white;
   border-radius: 1rem;
   overflow: hidden;
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
 }
 
-.tab-nav {
+nav {
   position: absolute;
-  bottom: 1rem;
-  width: 100%;
-  background-color: #333;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  right: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0 1rem;
+  display: flex;
+  gap: 1rem;
+  background: var(--panel-bg);
+  box-shadow: var(--box-shadow);
+  backdrop-filter: blur(0.5rem);
 }
 
 .tab {
-  padding: 0.5rem 1rem;
-  margin-right: 0.5rem;
-  border-radius: 4px;
+  padding: 1rem 0rem;
+  border-bottom: 2px solid transparent;
   text-decoration: none;
   color: #ccc;
-  font-weight: bold;
+  font-weight: 500;
+  display: inline-block;
   transition: background-color 0.2s, color 0.2s;
 
   &:hover {
@@ -49,7 +74,7 @@
   }
 
   &.router-link-active {
-    background-color: #4CAF50;
+    border-color: var(--primary);
     color: white;
   }
 }

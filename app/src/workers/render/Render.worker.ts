@@ -13,11 +13,7 @@ export interface FrameRenderer {
 // eslint-disable-next-line no-restricted-globals
 const scope = self as unknown as Worker
 
-type HostType = Window & typeof globalThis
-
 export class RenderWorker {
-  constructor(private host: HostType) {}
-
   private renderer: FrameRenderer | null = null
   private videoPort: MessagePort | null = null
   private pendingFrame: VideoFrame | null = null
@@ -120,7 +116,7 @@ export class RenderWorker {
 }
 
 // eslint-disable-next-line no-restricted-globals
-const worker = new RenderWorker(self)
+const worker = new RenderWorker()
 scope.addEventListener('message', (event: MessageEvent<WorkerEvent>) => {
   if (event.data.type === 'init') {
     worker.init(event.data as InitEvent)

@@ -1,15 +1,16 @@
 <template>
   <div ref="container" class="carplay-display">
-    <div class="loading-container"
-      v-if="isLoading"
-    >
-      <button v-if="deviceFound === false" @click="() => checkDevice(true)">
-        Plug-In Carplay Dongle and Press
-      </button>
-      <div v-if="deviceFound === true" class="loading-spinner">
-        <div class="spinner"></div>
-      </div>
-    </div>
+    <LoadingVideo :device-found="deviceFound ?? false" v-if="isLoading">
+      <template #overlay>
+        <button v-if="deviceFound === false" @click="() => checkDevice(true)" class="device-check-btn">
+          Plug-In Carplay Dongle and Press
+        </button>
+        <div v-if="deviceFound === true" class="loading-spinner">
+          <div class="spinner"></div>
+        </div>
+      </template>
+    </LoadingVideo>
+
     <div
       id="videoContainer"
       :style="!isPlugged ? { display: 'none' } : {}"
@@ -30,6 +31,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useCarplay } from '../features/carplay/composables/useCarplay';
+import LoadingVideo from './LoadingVideo.vue';
 
 const props = defineProps<{
   width: number;
@@ -57,32 +59,37 @@ onMounted(() => {
   height: 100%;
 }
 
-.loading-container {
-  width: 100%;
-  height: 100%;
+.device-check-btn {
+  position: relative;
+  z-index: 2;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.loading-spinner {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+  z-index: 2;
+}
 
-  .loading-spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
 
-  .spinner {
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 #videoContainer {

@@ -15,8 +15,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["vite/client", "vue"]
+    "types": ["vite/client", "vue", "@webgpu/types"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": [
+    "src/features/carplay/composables/useCarplay.ts",
+    "src/workers/carplay/CarPlay.worker.ts",
+    "src/workers/render/Render.worker.ts",
+    "src/workers/render/WebGPURenderer.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

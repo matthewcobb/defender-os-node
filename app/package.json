@@ -7,10 +7,11 @@
     "@fontsource/rubik-mono-one": "^5.2.5",
     "@types/node": "^20.9.0",
     "@webgpu/types": "^0.1.37",
+    "axios": "^1.8.4",
     "express": "^5.1.0",
     "node-carplay": "github:rhysmorgan134/node-CarPlay",
     "pcm-ringbuf-player": "github:rhysmorgan134/pcm-ringbuf-player#main",
-    "typescript": "^5.2.2",
+    "typescript": "^5.6.2",
     "vue": "^3.4.21",
     "vue-router": "^4.5.0"
   },
@@ -22,7 +23,7 @@
     "sass": "^1.86.3",
     "vite": "^5.0.10",
     "vite-plugin-node-polyfills": "^0.19.0",
-    "vue-tsc": "^1.8.27"
+    "vue-tsc": "^2.0.29"
   },
   "scripts": {
     "start": "vite",

@@ -1,7 +1,5 @@
 <template>
   <div class="home-view">
-    <h1>Defender OS Dashboard</h1>
-
     <div class="battery-status">
       <div class="battery-card solar">
         <h2>Solar Battery</h2>
@@ -57,12 +55,6 @@
 </script>
 
 <style lang="scss" scoped>
-.home-view {
-}
-
-h1 {
-  color: #4CAF50;
-}
 
 .battery-status {
   display: grid;
