@@ -1,11 +1,11 @@
 :root {
   --body-bg: #000000;
-  --primary: #7de429;
+  --primary: #70be27;
   --translucent: rgba(0, 0, 0, 0.5);
   --top-bar-bg: rgba(18, 25, 21, 0.764);
   --active-carplay: #00e448;
   --box-shadow: 0 0.25rem 0.5rem 0 rgba(0, 0, 0, 0.3);
-  --container-border-radius: 1rem;
+  --container-border-radius: 0.75rem;
   --fgColor-base: #ffffff;
   --fgColor-muted: #aecbb8;
   --panel-bg: rgba(153, 188, 165, 0.15);
@@ -15,8 +15,9 @@
   --top-bar-height: 2.5rem;
 }
 
-// @import './styles/type';
-// @import './styles/panel';
+@import './styles/type';
+@import './styles/panel';
+@import './styles/components';
 // @import './styles/grid';
 // @import './styles/spacing';
 // @import './styles/border';

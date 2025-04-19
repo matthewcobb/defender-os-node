@@ -1,12 +1,10 @@
 <template>
   <div class="settings-view">
-    <h1>Settings</h1>
-
-    <div class="settings-section">
-      <h2>System Maintenance</h2>
+    <div class="panel">
+      <h2>System</h2>
 
       <div class="setting-item">
-        <span class="setting-label">Update System</span>
+        <h4>Update System</h4>
         <button class="action-button" @click="updateSystem" :disabled="isUpdating">
           {{ isUpdating ? 'Updating...' : 'Update Now' }}
         </button>
@@ -43,7 +41,7 @@
       </div>
 
       <div class="setting-item">
-        <span class="setting-label">Close Browser Kiosk</span>
+        <h4>Close</h4>
         <button class="action-button danger" @click="closeKiosk" :disabled="isClosingKiosk">
           {{ isClosingKiosk ? 'Closing...' : 'Close Kiosk' }}
         </button>
@@ -180,24 +178,6 @@ const closeKiosk = async () => {
 .settings-view {
 }
 
-h1 {
-  margin-bottom: 2rem;
-  color: #4CAF50;
-}
-
-h2 {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  color: #ddd;
-}
-
-.settings-section {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-}
-
 .setting-item {
   display: flex;
   justify-content: space-between;
@@ -210,82 +190,8 @@ h2 {
   }
 }
 
-.setting-label {
-  font-weight: 500;
-}
-
-.setting-control {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  padding: 0.5rem;
-  color: white;
-}
-
-.slider {
-  width: 150px;
-  -webkit-appearance: none;
-  height: 6px;
-  border-radius: 3px;
-  background: #444;
-
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #4CAF50;
-    cursor: pointer;
-  }
-}
-
-.toggle {
-  position: relative;
-  display: inline-block;
-  width: 48px;
-  height: 24px;
-
-  input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-
-    &:checked + .toggle-slider {
-      background-color: #4CAF50;
-
-      &:before {
-        transform: translateX(24px);
-      }
-    }
-  }
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #444;
-  border-radius: 24px;
-  transition: 0.4s;
-
-  &:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    border-radius: 50%;
-    transition: 0.4s;
-  }
-}
-
 .action-button {
-  background-color: #4CAF50;
+  background-color: var(--primary);
   color: white;
   border: none;
   border-radius: 4px;

@@ -9,6 +9,7 @@
     "@webgpu/types": "^0.1.37",
     "axios": "^1.8.4",
     "express": "^5.1.0",
+    "lucide-vue-next": "^0.501.0",
     "node-carplay": "github:rhysmorgan134/node-CarPlay",
     "pcm-ringbuf-player": "github:rhysmorgan134/pcm-ringbuf-player#main",
     "typescript": "^5.6.2",

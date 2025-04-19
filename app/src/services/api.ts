@@ -61,5 +61,17 @@ export const apiService = {
     }
   },
 
+  /**
+   * Get data from Renogy solar controller and battery
+   */
+  getRenogyData: async () => {
+    try {
+      const response = await apiClient.get('/renogy_data');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Add more API methods here as needed
 };

@@ -33,7 +33,7 @@ onMounted(async () => {
   height: 100%;
   width: 100%;
   display: grid;
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: 420px 1fr;
   gap: 1rem;
 }
 </style>

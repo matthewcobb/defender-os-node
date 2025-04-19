@@ -63,16 +63,6 @@
 .about-view {
 }
 
-h1 {
-  margin-bottom: 2rem;
-  color: #4CAF50;
-}
-
-h2 {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  color: #ddd;
-}
 
 .about-section {
   background: rgba(255, 255, 255, 0.1);

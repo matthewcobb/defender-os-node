@@ -2,9 +2,15 @@
   <div class="defender-os">
     <TopBar />
     <nav class="tab-nav">
-      <router-link to="/home" class="tab">Home</router-link>
-      <router-link to="/settings" class="tab">Settings</router-link>
-      <router-link to="/about" class="tab">About</router-link>
+      <router-link to="/home" class="tab">
+        <CarFront :size="32" />
+      </router-link>
+      <router-link to="/settings" class="tab">
+        <Bolt :size="32" />
+      </router-link>
+      <router-link to="/about" class="tab">
+        <Info :size="32" />
+      </router-link>
     </nav>
     <main class="content">
       <router-view></router-view>
@@ -14,6 +20,7 @@
 
 <script setup lang="ts">
 import TopBar from './TopBar.vue';
+import { CarFront, Bolt, Info } from 'lucide-vue-next';
 // DefenderOS component serves as a container for various subpages
 </script>
 
@@ -29,6 +36,7 @@ import TopBar from './TopBar.vue';
   background-size: 400% 400%;
   animation: gradient 15s ease infinite;
   color: white;
+  overflow: hidden;
   border-radius: 1rem;
 
   @keyframes gradient {
@@ -46,27 +54,30 @@ import TopBar from './TopBar.vue';
   }
 }
 
-nav {
+nav.tab-nav {
   position: absolute;
   bottom: 0.5rem;
   left: 0.5rem;
   right: 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   padding: 0 1rem;
   display: flex;
-  gap: 1rem;
+  justify-content: space-around;
   background: var(--panel-bg);
   box-shadow: var(--box-shadow);
   backdrop-filter: blur(0.5rem);
+  z-index: 10;
 }
 
 .tab {
-  padding: 1rem 0rem;
+  padding: 1rem 1rem;
   border-bottom: 2px solid transparent;
   text-decoration: none;
   color: #ccc;
   font-weight: 500;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.2s, color 0.2s;
 
   &:hover {
@@ -75,7 +86,7 @@ nav {
 
   &.router-link-active {
     border-color: var(--primary);
-    color: white;
+    color: var(--primary);
   }
 }
 
