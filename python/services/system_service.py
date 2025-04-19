@@ -137,8 +137,9 @@ async def run_system_update():
         update_status["steps"][3]["status"] = "in_progress"
         logging.info("Restarting services...")
 
+        # Run pm2 restart with a login shell that will load .bashrc/.bash_profile
         process = subprocess.run(
-            ["pm2", "restart", "defender-os-server"],
+            ["/bin/bash", "-l", "-c", "pm2 restart defender-os-server"],
             capture_output=True,
             text=True,
             check=False,
