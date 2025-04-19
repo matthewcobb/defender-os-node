@@ -21,6 +21,7 @@ import TopBar from './TopBar.vue';
 .defender-os {
   position: relative;
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -29,7 +30,6 @@ import TopBar from './TopBar.vue';
   animation: gradient 15s ease infinite;
   color: white;
   border-radius: 1rem;
-  overflow: hidden;
 
   @keyframes gradient {
     0% {
@@ -80,10 +80,15 @@ nav {
 }
 
 .content {
-  flex: 1;
   padding: 1rem;
   width: 100%;
-  overflow: hidden;
+  height: calc(100vh - var(--top-bar-height)); /* Fills the remaining vertical space */
+  overflow-y: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
+  padding-bottom: 4rem;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 </style>

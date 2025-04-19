@@ -55,7 +55,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   background-color: var(--top-bar-bg);
-  padding: 0.5rem 1rem;
+  padding: 0 1rem;
+  height: var(--top-bar-height);
 
   .app-name {
     font-weight: 600;
