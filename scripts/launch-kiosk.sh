@@ -8,5 +8,4 @@ chromium-browser http://localhost:3000 \
   --autoplay-policy=no-user-gesture-required \
   --window-size=1600,600 \
   --start-fullscreen \
-  --default-background-color=000000 \
-  --force-dark-mode &
+  --default-background-color=000000 &
