@@ -1,13 +1,3 @@
-# ------------------------------------------
-# init.py
-from gpiozero import Button
-import time
-
-button = Button(12, pull_up=False)
-button.close()
-
-print("Initiated carPiHat GPIO 12")
-
 # -------------------------------------------
 # carpihat.py
 import gpiod
@@ -15,10 +5,10 @@ import time
 from subprocess import call
 import subprocess
 
-filename = 'carPiHatInit.py'
+filename = 'pi-shutdown-init.py'
 subprocess.run(['python3', filename])
 
-print("Running carPiHat.py")
+print("Running pi-shutdown-init.py")
 
 IGN_PIN = 12
 IGN_LOW_TIME = 60
