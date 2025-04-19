@@ -95,9 +95,9 @@ async def run_system_update():
         # Get environment with PATH
         env = os.environ.copy()
 
+        # Run npm install with a login shell that will load .bashrc/.bash_profile
         process = subprocess.run(
-            ["npm", "install"],
-            cwd=APP_DIR,
+            ["/bin/bash", "-l", "-c", f"cd {APP_DIR} && npm install"],
             capture_output=True,
             text=True,
             check=False,
@@ -116,9 +116,9 @@ async def run_system_update():
         update_status["steps"][2]["status"] = "in_progress"
         logging.info("Running npm run build...")
 
+        # Run npm build with a login shell that will load .bashrc/.bash_profile
         process = subprocess.run(
-            ["npm", "run", "build"],
-            cwd=APP_DIR,
+            ["/bin/bash", "-l", "-c", f"cd {APP_DIR} && npm run build"],
             capture_output=True,
             text=True,
             check=False,
