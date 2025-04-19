@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Sun, Zap, BatteryMedium, ArrowRight, Calendar, ActivitySquare } from 'lucide-vue-next';
+import { Sun, BatteryMedium, ArrowRight, Calendar, ActivitySquare } from 'lucide-vue-next';
 
 const props = defineProps({
   solarData: {

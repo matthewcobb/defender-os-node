@@ -50,7 +50,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { BatteryMedium, BatteryCharging, Gauge, ArrowRight, BarChart2, Thermometer } from 'lucide-vue-next';
+import { BatteryMedium, Gauge, ArrowRight, BarChart2, Thermometer } from 'lucide-vue-next';
 
 const props = defineProps({
   batteryData: {
