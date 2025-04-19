@@ -88,7 +88,15 @@ nav {
   box-sizing: border-box;
   padding-bottom: 4rem;
   &::-webkit-scrollbar {
-    display: none;
+    width: 0.75rem;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--translucent);
+    border-radius: 0.5rem;
+    border: 0.2rem solid var(--panel-bg);
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 </style>
