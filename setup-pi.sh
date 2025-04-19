@@ -81,17 +81,19 @@ cd "$CLONE_DIR" # Return to main directory
 echo "Setting up Python virtual environment and installing dependencies..."
 cd "$CLONE_DIR/python"  # Navigate to the Python directory
 
-# Create virtual environment (if not already created)
-python3 -m venv env
+# Create virtual environment if it doesn't already exist
+if [ ! -d "env" ]; then
+    python3 -m venv env
 
-# Activate the virtual environment
-source env/bin/activate
+    # Activate the virtual environment
+    source env/bin/activate
 
-# Install the necessary Python packages
-pip install -r requirements.txt
+    # Install the necessary Python packages
+    pip install -r requirements.txt
 
-# Deactivate virtual environment
-deactivate
+    # Deactivate virtual environment
+    deactivate
+fi
 
 cd "$CLONE_DIR" # Return to main directory
 
@@ -106,7 +108,8 @@ sudo systemctl start defender-os-utilities-server.service
 
 # Copy defender-os.desktop for autostart
 echo -e "${BLUE}Copying defender-os.desktop to autostart...${RESET}"
-sudo cp "$CLONE_DIR/scripts/defender-os.desktop" ~/.config/autoload/defender-os.desktop
+sudo mkdir -p ~/.config/autostart
+sudo cp "$CLONE_DIR/scripts/defender-os.desktop" ~/.config/autostart/defender-os.desktop
 
 # Create udev rule for CarLinkit device
 echo -e "${BLUE}Creating udev rules for CarLinkit device...${RESET}"
