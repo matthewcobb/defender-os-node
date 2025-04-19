@@ -9,6 +9,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 RESET='\033[0m'  # Reset color to default
+CLONE_DIR="/home/pi/defender-os-node"
 
 # Update and install dependencies
 echo -e "${BLUE}Updating and installing dependencies...${RESET}"
@@ -51,7 +52,6 @@ npm install -g pm2  # Install pm2 globally using npm
 # Ensure pm2 is started as a systemd service
 echo -e "${YELLOW}Enabling pm2 service on boot...${RESET}"
 VERSION=$(node -v)
-# sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
 sudo env PATH=$PATH:/home/pi/.nvm/versions/node/$VERSION/bin /home/pi/.nvm/versions/node/$VERSION/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
 
 # Ensure NVM is sourced for pm2 in systemd startup
