@@ -1,0 +1,11 @@
+[Unit]
+Description=CarPiHat initialisation
+
+[Service]
+Type=simple
+
+ExecStart=/usr/bin/python3 /home/pi/defender-os-node/scripts/pi-shutdown.py
+WorkingDirectory=/home/pi/defender-os-node/scripts/
+
+[Install]
+WantedBy=multi-user.target

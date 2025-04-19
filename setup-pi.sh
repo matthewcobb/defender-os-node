@@ -111,6 +111,12 @@ echo -e "${BLUE}Copying defender-os.desktop to autostart...${RESET}"
 sudo mkdir -p ~/.config/autostart
 sudo cp "$CLONE_DIR/scripts/defender-os.desktop" ~/.config/autostart/defender-os.desktop
 
+# Add smart shutdown service
+echo -e "${BLUE}Adding smart shutdown service...${RESET}"
+sudo cp "$CLONE_DIR/scripts/carpihat-shutdown.service" /etc/systemd/system/carpihat-shutdown.service
+#sudo systemctl enable carpihat-shutdown.service
+#sudo systemctl start carpihat-shutdown.service
+
 # Create udev rule for CarLinkit device
 echo -e "${BLUE}Creating udev rules for CarLinkit device...${RESET}"
 FILE=/etc/udev/rules.d/52-nodecarplay.rules
@@ -141,3 +147,7 @@ echo "# HDMI settings..."
 echo "hdmi_group=2"
 echo "hdmi_mode=87"
 echo "hdmi_cvt 1600 600 60 6 0 0 0"
+
+# Add carPiHat init script
+echo -e "${BLUE}Adding carPiHat init script...${RESET}"
+echo "You still need to enable the service manually: sudo systemctl enable carpihat-shutdown.service and then start it: sudo systemctl start carpihat-shutdown.service."

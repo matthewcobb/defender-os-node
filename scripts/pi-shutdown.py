@@ -1,16 +1,3 @@
-# sudo nano /etc/systemd/system/carpihat.service
-[Unit]
-Description=CarPiHat initialisation
-
-[Service]
-Type=simple
-
-ExecStart=/usr/bin/python3 /home/pi/boot/carPiHat.py
-WorkingDirectory=/home/pi/boot/
-
-[Install]
-WantedBy=multi-user.target
-
 # ------------------------------------------
 # init.py
 from gpiozero import Button
