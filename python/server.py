@@ -1,4 +1,4 @@
-from quart import Quart, jsonify
+from quart import Quart, jsonify, Response
 import logging
 from gpiozero import CPUTemperature
 from renogybt import RoverClient, BatteryClient, LipoModel
@@ -30,6 +30,14 @@ battery_client = BatteryClient(battery_config)
 # Flask
 app = Quart(__name__)
 
+# Add CORS headers to all responses
+@app.after_request
+async def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
 @app.before_serving
 async def before_serving():
     await dcdc_client.connect()
@@ -42,7 +50,7 @@ async def fetch_renogy_data():
     if not dcdc_client.is_connected or not battery_client.is_connected:
         return jsonify({"error": "RenogyBT not connected"}), 500
 
-    # Compile data request
+    # Compile data request
     if dcdc_client.latest_data and battery_client.latest_data:
         try:
             data = LipoModel(dcdc_client.latest_data, battery_client.latest_data).calculate()
@@ -53,7 +61,6 @@ async def fetch_renogy_data():
             return jsonify({"error": e}), 500
     else:
         return jsonify({"error": "No data found!"}), 500
-
 
 @app.route('/renogy_data', methods=['GET'])
 async def dcdc_status():

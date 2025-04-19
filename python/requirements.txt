@@ -1,3 +1,9 @@
 gunicorn
 uvicorn
 flask
+quart
+bleak
+gpiozero
+
+# Platform-specific dependencies
+RPi.GPIO; platform_system == "Linux"
