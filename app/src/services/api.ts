@@ -38,6 +38,18 @@ export const apiService = {
   },
 
   /**
+   * Get the current system update status
+   */
+  getUpdateStatus: async () => {
+    try {
+      const response = await apiClient.get('/update_status');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Close Chrome kiosk browser
    */
   closeKiosk: async () => {
