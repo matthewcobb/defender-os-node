@@ -3,46 +3,6 @@
     <h1>Settings</h1>
 
     <div class="settings-section">
-      <h2>Display Settings</h2>
-
-      <div class="setting-item">
-        <span class="setting-label">Theme</span>
-        <select class="setting-control">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="auto">System Default</option>
-        </select>
-      </div>
-
-      <div class="setting-item">
-        <span class="setting-label">Display Brightness</span>
-        <input type="range" min="0" max="100" value="80" class="setting-control slider" />
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <h2>System Settings</h2>
-
-      <div class="setting-item">
-        <span class="setting-label">Auto-start on Boot</span>
-        <label class="toggle">
-          <input type="checkbox" checked />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="setting-item">
-        <span class="setting-label">Update Frequency</span>
-        <select class="setting-control">
-          <option value="5">Every 5 seconds</option>
-          <option value="30">Every 30 seconds</option>
-          <option value="60">Every minute</option>
-          <option value="300">Every 5 minutes</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="settings-section">
       <h2>System Maintenance</h2>
 
       <div class="setting-item">
