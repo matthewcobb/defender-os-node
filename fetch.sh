@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Load NVM when ran in python subprocess
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
 # Navigate to the git repository directory (replace with your path)
 cd ~/defender-os-node || exit
 
