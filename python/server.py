@@ -76,5 +76,60 @@ def cpu_temp():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Update system endpoint
+@app.route('/update_system', methods=['POST'])
+async def update_system():
+    try:
+        import subprocess
+        import os
+
+        # Get the directory of the current script
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        # Go up one level to the project root
+        project_root = os.path.dirname(script_dir)
+        fetch_script = os.path.join(project_root, 'fetch.sh')
+
+        # Run the fetch.sh script and wait for completion
+        process = subprocess.run(['/bin/bash', fetch_script],
+                                capture_output=True,
+                                text=True,
+                                check=False)
+
+        # Check if the command was successful
+        if process.returncode == 0:
+            return {
+                "status": "success",
+                "message": "Update completed successfully",
+                "output": process.stdout
+            }, 200
+        else:
+            logging.error(f"Update script failed with code {process.returncode}")
+            logging.error(f"STDOUT: {process.stdout}")
+            logging.error(f"STDERR: {process.stderr}")
+            return {
+                "status": "error",
+                "message": "Update failed",
+                "returncode": process.returncode,
+                "error": process.stderr,
+                "output": process.stdout
+            }, 500
+    except Exception as e:
+        logging.error(f"Error running update script: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/close_kiosk', methods=['POST'])
+async def close_kiosk():
+    try:
+        import subprocess
+
+        # Kill Chrome/Chromium processes
+        subprocess.run(['pkill', '-f', 'chromium'], check=False)
+        subprocess.run(['pkill', '-f', 'chrome'], check=False)
+
+        return {"status": "kiosk closed"}, 200
+    except Exception as e:
+        logging.error(f"Error closing kiosk: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -41,11 +41,94 @@
         </select>
       </div>
     </div>
+
+    <div class="settings-section">
+      <h2>System Maintenance</h2>
+
+      <div class="setting-item">
+        <span class="setting-label">Update System</span>
+        <button class="action-button" @click="updateSystem" :disabled="isUpdating">
+          {{ isUpdating ? 'Updating...' : 'Update Now' }}
+        </button>
+      </div>
+      <div v-if="updateMessage" class="update-message" :class="{ 'update-error': updateError }">
+        {{ updateMessage }}
+      </div>
+
+      <div class="setting-item">
+        <span class="setting-label">Close Browser Kiosk</span>
+        <button class="action-button danger" @click="closeKiosk" :disabled="isClosingKiosk">
+          {{ isClosingKiosk ? 'Closing...' : 'Close Kiosk' }}
+        </button>
+      </div>
+      <div v-if="kioskMessage" class="update-message" :class="{ 'update-error': kioskError }">
+        {{ kioskMessage }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Settings view component
+import { ref } from 'vue';
+import { apiService } from '../services/api';
+
+const isUpdating = ref(false);
+const updateMessage = ref('');
+const updateError = ref(false);
+const isClosingKiosk = ref(false);
+const kioskMessage = ref('');
+const kioskError = ref(false);
+
+const updateSystem = async () => {
+  if (isUpdating.value) return;
+
+  try {
+    isUpdating.value = true;
+    updateMessage.value = '';
+    updateError.value = false;
+
+    const response = await apiService.updateSystem();
+
+    if (response.status === 'success') {
+      updateMessage.value = response.message || 'Update completed successfully.';
+    } else {
+      updateError.value = true;
+      updateMessage.value = response.message || 'Update failed. Please check logs.';
+    }
+  } catch (error) {
+    updateError.value = true;
+    updateMessage.value = 'Failed to update the system. Please try again.';
+    console.error('Update error:', error);
+  } finally {
+    // Reset updating status after 10 seconds to allow button re-use
+    setTimeout(() => {
+      isUpdating.value = false;
+    }, 10000);
+  }
+};
+
+const closeKiosk = async () => {
+  if (isClosingKiosk.value) return;
+
+  try {
+    isClosingKiosk.value = true;
+    kioskMessage.value = '';
+    kioskError.value = false;
+
+    await apiService.closeKiosk();
+
+    kioskMessage.value = 'Kiosk closed successfully.';
+  } catch (error) {
+    kioskError.value = true;
+    kioskMessage.value = 'Failed to close the kiosk. Please try again.';
+    console.error('Kiosk close error:', error);
+  } finally {
+    // Reset closing status after 10 seconds to allow button re-use
+    setTimeout(() => {
+      isClosingKiosk.value = false;
+    }, 10000);
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -153,6 +236,52 @@ h2 {
     background-color: white;
     border-radius: 50%;
     transition: 0.4s;
+  }
+}
+
+.action-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    background-color: #3e8e41;
+  }
+
+  &:disabled {
+    background-color: #888;
+    cursor: not-allowed;
+  }
+}
+
+.update-message {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+  font-size: 0.9rem;
+}
+
+.update-error {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.danger {
+  background-color: #f44336;
+
+  &:hover {
+    background-color: #d32f2f;
+  }
+
+  &:disabled {
+    background-color: #888;
+    cursor: not-allowed;
   }
 }
 </style>

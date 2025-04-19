@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Navigate to the git repository directory (replace with your path)
-cd /home/pi/defender-os-node || exit
+cd ~/defender-os-node || exit
 
 # Pull the latest changes from the remote repository
 echo "Pulling the latest changes from the repository..."

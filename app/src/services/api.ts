@@ -25,5 +25,29 @@ export const apiService = {
     }
   },
 
+  /**
+   * Trigger system update via fetch.sh
+   */
+  updateSystem: async () => {
+    try {
+      const response = await apiClient.post('/update_system');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Close Chrome kiosk browser
+   */
+  closeKiosk: async () => {
+    try {
+      const response = await apiClient.post('/close_kiosk');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Add more API methods here as needed
 };
