@@ -147,7 +147,9 @@ echo "# HDMI settings..."
 echo "hdmi_group=2"
 echo "hdmi_mode=87"
 echo "hdmi_cvt 1600 600 60 6 0 0 0"
-
+echo "# Latch power"
+echo "dtoverlay=gpio-poweroff,gpiopin=25,active_low"
 # Add carPiHat init script
 echo -e "${BLUE}Adding carPiHat init script...${RESET}"
-echo "You still need to enable the service manually: sudo systemctl enable carpihat-shutdown.service and then start it: sudo systemctl start carpihat-shutdown.service."
+echo "You still need to enable the service manually, run:"
+echo "sudo systemctl start carpihat-shutdown.service"
