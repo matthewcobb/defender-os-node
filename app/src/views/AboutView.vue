@@ -40,7 +40,6 @@ import { ref, reactive } from 'vue';
 import pkg from '../../package.json';
 
 const appVersion = ref(pkg.version);
-const nodeVersion = ref('Loading...');
 const vueVersion = ref(pkg.dependencies.vue.replace('^', ''));
 const systemInfo = reactive({
   platform: '',

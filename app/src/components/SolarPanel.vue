@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Sun, BatteryMedium, ArrowRight, Calendar, ActivitySquare } from 'lucide-vue-next';
+import { Sun, BatteryMedium, ArrowRight, Calendar } from 'lucide-vue-next';
 import LevelIndicator from './LevelIndicator.vue';
 
 const props = defineProps({
