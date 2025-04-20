@@ -1,54 +1,34 @@
 <template>
   <div class="about-view">
-    <h1>About Defender OS</h1>
-
-    <div class="about-section">
-      <h2>Version Information</h2>
+    <div class="panel">
+      <h3>Version Information</h3>
       <div class="info-row">
-        <span class="info-label">Defender OS:</span>
-        <span class="info-value">v0.1.0</span>
+        <h4>Defender OS:</h4>
+        <h4>v{{ appVersion }}</h4>
       </div>
       <div class="info-row">
-        <span class="info-label">Node Version:</span>
-        <span class="info-value">v18.12.1</span>
+        <h4>Vue Version:</h4>
+        <h4>v{{ vueVersion }}</h4>
       </div>
-      <div class="info-row">
-        <span class="info-label">Vue Version:</span>
-        <span class="info-value">v3.4.21</span>
+      <div v-if="systemInfo.platform" class="info-row">
+        <h4>Platform:</h4>
+        <h4>{{ systemInfo.platform }}</h4>
       </div>
     </div>
 
-    <div class="about-section">
-      <h2>System Information</h2>
-      <div class="info-row">
-        <span class="info-label">Device:</span>
-        <span class="info-value">Raspberry Pi 4</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">CPU:</span>
-        <span class="info-value">BCM2711 Quad-core Cortex-A72</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Memory:</span>
-        <span class="info-value">4GB LPDDR4</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Storage:</span>
-        <span class="info-value">32GB SD Card</span>
-      </div>
-    </div>
-
-    <div class="about-section">
-      <h2>Contributors</h2>
-      <p>Defender OS is an open-source project developed by Land Rover enthusiasts.</p>
+    <div class="panel">
+      <h3>Contributors</h3>
+      <small>
+        Defender OS is an open-source project developed by Land Rover enthusiasts.
+      </small>
       <div class="contributors">
         <div class="contributor">
           <div class="avatar">MC</div>
-          <div class="name">Matthew Cobb</div>
+          <small>Matthew Cobb</small>
         </div>
         <div class="contributor">
           <div class="avatar">RM</div>
-          <div class="name">Rhys Morgan</div>
+          <small>Rhys Morgan</small>
         </div>
       </div>
     </div>
@@ -56,38 +36,34 @@
 </template>
 
 <script setup lang="ts">
-// About view component
+import { ref, reactive } from 'vue';
+import pkg from '../../package.json';
+
+const appVersion = ref(pkg.version);
+const nodeVersion = ref('Loading...');
+const vueVersion = ref(pkg.dependencies.vue.replace('^', ''));
+const systemInfo = reactive({
+  platform: '',
+  arch: '',
+  uptime: 0
+});
 </script>
 
 <style lang="scss" scoped>
 .about-view {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
 }
-
-
-.about-section {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-}
-
 .info-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 120px 1fr;
   padding: 0.5rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   &:last-child {
     border-bottom: none;
   }
-}
-
-.info-label {
-  width: 40%;
-  font-weight: 500;
-}
-
-.info-value {
-  width: 60%;
 }
 
 .contributors {
@@ -106,15 +82,11 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #4CAF50;
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   margin-bottom: 0.5rem;
-}
-
-.name {
-  font-size: 0.9rem;
 }
 </style>

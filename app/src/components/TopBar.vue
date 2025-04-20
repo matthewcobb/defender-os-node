@@ -67,7 +67,8 @@ onUnmounted(() => {
   }
 
   .app-name {
-    font-weight: 600;
+    font-weight: 100;
+    letter-spacing: 0.1rem;
     margin: 0;
   }
 

@@ -7,42 +7,31 @@
     <div v-if="error" class="error-state">
       <p>Connecting...</p>
     </div>
-    <div v-else class="solar-info">
-      <div class="level-container">
-        <div class="level" :style="{ width: solarPowerPercentage + '%' }">
-          {{ solarData?.pv_power || '0' }}W
-        </div>
-      </div>
-      <div class="solar-details">
+    <div v-else>
+      <LevelIndicator :percentage="solarPowerPercentage" type="solar">
+        {{ solarData?.pv_power || '0' }}W
+      </LevelIndicator>
+      <div class="grid justify-between">
         <div class="stat">
-          <span class="label">Voltage</span>
-          <span class="value">
+          <h4>Voltage</h4>
+          <p class="value">
             <BatteryMedium :size="20" class="icon" />
             {{ solarData?.pv_voltage || '0' }}V
-          </span>
+          </p>
         </div>
         <div class="stat">
-          <span class="label">Current</span>
-          <span class="value">
+          <h4>Load</h4>
+          <p class="value">
             <ArrowRight :size="20" class="icon" />
-            {{ solarData?.pv_current || '0' }}A
-          </span>
+            {{ solarData?.load_power || '0' }}A
+          </p>
         </div>
         <div class="stat">
-          <span class="label">Today</span>
-          <span class="value">
+          <h4>Today</h4>
+          <p class="value">
             <Calendar :size="20" class="icon" />
             {{ solarData?.power_generation_today || '0' }}Wh
-          </span>
-        </div>
-      </div>
-      <div class="additional-details">
-        <div class="stat">
-          <span class="label">Status</span>
-          <span class="value">
-            <ActivitySquare :size="20" class="icon" />
-            {{ chargingStatus }}
-          </span>
+          </p>
         </div>
       </div>
     </div>
@@ -52,6 +41,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Sun, BatteryMedium, ArrowRight, Calendar, ActivitySquare } from 'lucide-vue-next';
+import LevelIndicator from './LevelIndicator.vue';
 
 const props = defineProps({
   solarData: {
@@ -71,24 +61,6 @@ const solarPowerPercentage = computed(() => {
   const maxPower = props.solarData?.max_charging_power_today || 200;
   const percentage = (currentPower / maxPower) * 100;
   return Math.min(percentage, 100); // Cap at 100%
-});
-
-const chargingStatus = computed(() => {
-  if (!props.solarData?.charging_status) return 'Unknown';
-
-  const status = props.solarData.charging_status;
-  switch (status) {
-    case 'mppt':
-      return 'MPPT';
-    case 'boost':
-      return 'Boost';
-    case 'float':
-      return 'Float';
-    case 'equalization':
-      return 'Equalization';
-    default:
-      return status.charAt(0).toUpperCase() + status.slice(1);
-  }
 });
 </script>
 

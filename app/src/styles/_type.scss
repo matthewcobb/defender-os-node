@@ -1,4 +1,24 @@
-h1, h2, h3, h4 {
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+h3 {
+  font-size: 1rem;
+}
+
+h4 {
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--fgColor-muted);
+}
+
+h1, h2, h3 {
   margin: 0rem;
   margin-bottom: 0.5rem;
   font-weight: 500;
@@ -15,16 +35,22 @@ p {
   font-size: 1rem;
   line-height: 1.4;
   margin: 0rem;
-  + h2 {
-    margin-top: 0.5rem;
-  }
 }
 
-.monospace {
+small, .small {
+  font-size: 0.875rem;
+}
+
+.font-monospace {
   font-weight: bold;
   font-family: Courier, monospace;
 }
 
-.text-secondary {
-  color: var(--text-secondary);
+.fgColor-primary {
+  color: var(--primary);
+}
+
+
+.fgColor-muted {
+  color: var(--fgColor-muted);
 }

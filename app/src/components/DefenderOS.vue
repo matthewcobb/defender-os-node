@@ -1,7 +1,7 @@
 <template>
   <div class="defender-os">
     <TopBar />
-    <nav class="tab-nav">
+    <nav class="tab-nav panel">
       <router-link to="/home" class="tab">
         <CarFront :size="32" />
       </router-link>
@@ -32,7 +32,7 @@ import { CarFront, Bolt, Info } from 'lucide-vue-next';
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: linear-gradient(-45deg, #7c9386, #44534A, #202A24, #0e1310);
+  background: linear-gradient(-45deg, #234432, #44534A, #202A24, #0e1310);
   background-size: 400% 400%;
   animation: gradient 15s ease infinite;
   color: white;
@@ -54,8 +54,9 @@ import { CarFront, Bolt, Info } from 'lucide-vue-next';
   }
 }
 
-nav.tab-nav {
+.tab-nav {
   position: absolute;
+  width: auto;
   bottom: 0.5rem;
   left: 0.5rem;
   right: 0.5rem;
@@ -63,9 +64,7 @@ nav.tab-nav {
   padding: 0 1rem;
   display: flex;
   justify-content: space-around;
-  background: var(--panel-bg);
-  box-shadow: var(--box-shadow);
-  backdrop-filter: blur(0.5rem);
+  backdrop-filter: blur(1rem);
   z-index: 10;
 }
 
@@ -73,7 +72,7 @@ nav.tab-nav {
   padding: 1rem 1rem;
   border-bottom: 2px solid transparent;
   text-decoration: none;
-  color: #ccc;
+  color: var(--fgColor-muted);
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -81,7 +80,7 @@ nav.tab-nav {
   transition: background-color 0.2s, color 0.2s;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--panel-bg);
   }
 
   &.router-link-active {
@@ -91,13 +90,13 @@ nav.tab-nav {
 }
 
 .content {
-  padding: 1rem;
+  padding: 0.5rem;
   width: 100%;
   height: calc(100vh - var(--top-bar-height)); /* Fills the remaining vertical space */
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
-  padding-bottom: 4rem;
+  padding-bottom: 5rem;
   &::-webkit-scrollbar {
     width: 0.75rem;
   }

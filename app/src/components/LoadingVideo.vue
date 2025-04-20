@@ -35,7 +35,7 @@ const previewImage = previewImageSrc;
 const setupVideoLoop = () => {
   if (!loadingVideoElement.value) return;
 
-  const loopEndTime = props.loopEndTime || 3;
+  const loopEndTime = props.loopEndTime || 4;
 
   videoLoopInterval = window.setInterval(() => {
     if (!loadingVideoElement.value) return;

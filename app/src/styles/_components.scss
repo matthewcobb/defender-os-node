@@ -3,41 +3,6 @@
   color: var(--fgColor-muted);
 }
 
-// Battery Panel Styles
-.battery-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.level-container {
-  background: var(--panel-bg);
-  border-radius: 50cqh;
-  width: 100%;
-}
-
-.level {
-  height: 100%;
-  border-radius: 10px;
-  transition: width 0.5s ease;
-  text-align: center;
-  padding: 0.25rem 1rem;
-  font-size: 1.5rem;
-  font-weight: 500;
-  box-sizing: border-box;
-  min-width: 100px;
-  border-radius: 50cqh;
-  overflow: hidden;
-}
-
-.solar .level {
-  background: linear-gradient(90deg, var(--primary), var(--charging-base));
-}
-
-.leisure .level {
-  background: linear-gradient(90deg, #00BCD4, #2196F3);
-}
-
 // Solar specific styles
 .solar-info {
   display: flex;
@@ -57,27 +22,4 @@
   border-radius: 10px;
   background: linear-gradient(90deg, var(--primary), var(--charging-base));
   transition: width 0.5s ease;
-}
-
-// Common stat styles
-.solar-details, .additional-details, .battery-details {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-}
-
-.label {
-  font-size: 0.8rem;
-  color: var(--fgColor-muted);
-  margin-bottom: 0.25rem;
-}
-
-.value {
-  font-size: 1.1rem;
-  font-weight: 500;
 }

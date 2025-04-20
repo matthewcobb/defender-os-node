@@ -1,6 +1,6 @@
 :root {
   --body-bg: #000000;
-  --primary: #89be27;
+  --primary: #36d34b;
   --translucent: rgba(0, 0, 0, 0.5);
   --top-bar-bg: rgba(18, 25, 21, 0.764);
   --active-carplay: #00e448;
@@ -12,13 +12,14 @@
   --panel-charging: rgb(15, 99, 47);
   --charging-base: #00e448;
   --charging-dark: #04542c;
-  --top-bar-height: 2.5rem;
+  // Sizes
+  --top-bar-height: 2rem;
 }
 
 @import './styles/type';
 @import './styles/panel';
 @import './styles/components';
-// @import './styles/grid';
+@import './styles/grid';
 // @import './styles/spacing';
 // @import './styles/border';
 // @import './styles/progress';
@@ -44,22 +45,4 @@ body,
 body {
   background-color: var(--body-bg);
   color: var(--fgColor-base);
-}
-
-
-.font-monospace {
-  font-family: monospace;
-  margin: 0;
-}
-
-.fgColor-primary {
-  color: var(--primary);
-}
-
-.fgColor-muted {
-  color: var(--fgColor-muted);
-}
-
-.small {
-  font-size: 0.8rem;
 }

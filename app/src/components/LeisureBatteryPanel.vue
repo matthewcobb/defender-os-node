@@ -7,41 +7,35 @@
     <div v-if="error" class="error-state">
       <p>Connecting...</p>
     </div>
-    <div v-else class="battery-info">
-      <div class="level-container">
-        <div class="level" :style="{ width: batteryPercentage + '%' }">
-          {{ batteryPercentage }}%
-        </div>
-      </div>
-      <div class="battery-details">
+    <div v-else>
+      <LevelIndicator
+        :percentage="batteryPercentage"
+        type="leisure"
+        :charging="isCharging"
+      >
+        {{ batteryPercentage }}%
+      </LevelIndicator>
+      <div class="grid justify-between">
         <div class="stat">
-          <span class="label">Voltage</span>
-          <span class="value">
+          <h4>Voltage</h4>
+          <p class="value">
             <Gauge :size="16" class="icon" />
             {{ batteryData?.voltage || '0' }}V
-          </span>
+          </p>
         </div>
         <div class="stat">
-          <span class="label">Current</span>
-          <span class="value">
+          <h4>Current</h4>
+          <p class="value">
             <ArrowRight :size="16" class="icon" />
             {{ batteryData?.current || '0' }}A
-          </span>
-        </div>
-
-        <div class="stat">
-          <span class="label">Capacity</span>
-          <span class="value">
-            <BarChart2 :size="16" class="icon" />
-            {{ batteryData?.capacity || '0' }}%
-          </span>
+          </p>
         </div>
         <div class="stat">
-          <span class="label">Temp</span>
-          <span class="value">
+          <h4>Temp</h4>
+          <p class="value">
             <Thermometer :size="16" class="icon" />
             {{ averageTemperature }}°C
-          </span>
+          </p>
         </div>
       </div>
     </div>
@@ -50,7 +44,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { BatteryMedium, Gauge, ArrowRight, BarChart2, Thermometer } from 'lucide-vue-next';
+import { BatteryMedium, Gauge, ArrowRight, Thermometer } from 'lucide-vue-next';
+import LevelIndicator from './LevelIndicator.vue';
 
 const props = defineProps({
   batteryData: {
@@ -65,6 +60,10 @@ const props = defineProps({
 
 const batteryPercentage = computed(() => {
   return Math.round(parseFloat(props.batteryData?.remaining_charge || '0'));
+});
+
+const isCharging = computed(() => {
+  return props.batteryData?.current > 0;
 });
 
 const averageTemperature = computed(() => {
