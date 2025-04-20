@@ -7,7 +7,11 @@ IGN_LOW_TIME  = 10      # seconds to wait before shutdown
 POLL_INTERVAL = 0.1     # main‑loop tick
 
 # Leave the pin floating (no extra resistor) and declare it *active‑LOW*
-ignition = DigitalInputDevice(IGN_PIN, pull_up=None)
+ignition = DigitalInputDevice(
+    IGN_PIN,
+    pull_up=None,        # no extra resistor
+    active_state=True    # pin HIGH → ignition present
+)
 
 print("CarPiHAT shutdown monitor running – ignition active while pin is LOW")
 
