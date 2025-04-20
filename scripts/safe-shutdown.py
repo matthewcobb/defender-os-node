@@ -13,7 +13,13 @@ ignition = DigitalInputDevice(
     active_state=True    # pin HIGH → ignition present
 )
 
-print("CarPiHAT shutdown monitor running – ignition active while pin is LOW")
+# Bail out if Pi wasn't started by the ignition feed -------------
+if not ignition.is_active:          # pin LOW  ==> IGN off
+    print("IGN is LOW at boot – assuming manual power‑up, exiting monitor.")
+    sys.exit(0)
+# -------------------------------------------------------------------------
+
+print("Safe‑shutdown monitor started – ignition active while pin is HIGH")
 
 low_since = None
 countdown_shown = False
