@@ -149,6 +149,7 @@ echo "hdmi_mode=87"
 echo "hdmi_cvt 1600 600 60 6 0 0 0"
 echo "# Latch power"
 echo "dtoverlay=gpio-poweroff,gpiopin=25,active_low"
+echo "usb_max_current_enable=1" # Enable USB max current, pi5 limits if not powered by usb-c
 # Add carPiHat init script
 echo -e "${BLUE}Adding carPiHat init script...${RESET}"
 echo "You still need to enable the service manually, run:"

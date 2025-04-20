@@ -1,57 +1,43 @@
 #!/usr/bin/env python3
 """
-carpihat_power.py – Safe‑shutdown monitor for CarPiHAT PRO 5
-Tested on Raspberry Pi 5 (Bookworm, 64‑bit).
-
-• Pulls GPIO 25 HIGH to latch power on the CarPiHAT.
-• Monitors GPIO 12 (ignition sense).
-  – If IGN goes low for IGN_LOW_TIME seconds, the Pi is told to shut down.
-• After issuing the shutdown command the script drops the latch so the HAT
-  removes 5 V completely once the Pi has halted.
-
-Install deps (already present on a standard image, but just in case):
-    sudo apt update
-    sudo apt install python3-gpiozero
+Safe‑shutdown monitor for CarPiHAT PRO 5 – Raspberry Pi 5 compatible
 """
 
 from gpiozero import DigitalInputDevice, DigitalOutputDevice
 import subprocess
 import time
 
-# --- Pin assignments ---------------------------------------------------------
-IGN_PIN        = 12   # BCM12  – 12 V switched input from CarPiHAT
-EN_POWER_PIN   = 25   # BCM25 – latch output back to CarPiHAT
-IGN_LOW_TIME   = 10   # seconds ignition must stay low before shutdown
-POLL_INTERVAL  = 0.5  # seconds between polls (500)
+# --- Configuration -----------------------------------------------------------
+IGN_PIN       = 12      # BCM12 – ignition / 12 V SW sense
+EN_POWER_PIN  = 25      # BCM25 – latch output
+IGN_LOW_TIME  = 10      # seconds ignition must stay low before shutdown
+POLL_INTERVAL = 0.1     # seconds between polls
 
 # --- GPIO setup --------------------------------------------------------------
-ignition = DigitalInputDevice(IGN_PIN, pull_up=False, active_state=True)
-latch    = DigitalOutputDevice(EN_POWER_PIN,
-                               active_high=True,
-                               initial_value=True)   # latch ON
+# internal pull‑down keeps the pin low when the wire is open;
+# high (3 V3) from CarPiHAT = ignition ON
+ignition = DigitalInputDevice(IGN_PIN, pull_up=False)
+
+# assert the latch so the HAT keeps 5 V on
+latch = DigitalOutputDevice(EN_POWER_PIN, initial_value=True)
 
 print("CarPiHAT power manager started – latch asserted (GPIO25 HIGH).")
 
-# --- Main loop ---------------------------------------------------------------
 low_since = None
 try:
     while True:
-        if ignition.is_active:
-            # Ignition (ACC/12 V SW) present → keep running
+        if ignition.is_active:          # ignition present
             low_since = None
-        else:
-            # Ignition off → start / continue countdown
+        else:                           # ignition lost
             if low_since is None:
                 low_since = time.monotonic()
             elif time.monotonic() - low_since >= IGN_LOW_TIME:
-                print(f"Ignition low for {IGN_LOW_TIME}s – shutting down…")
+                print("Ignition low for %ds – shutting down…" % IGN_LOW_TIME)
                 subprocess.call(["sudo", "shutdown", "-h", "now"])
-                time.sleep(2)          # give the command a moment to flush
+                time.sleep(2)           # let the command flush
                 break
-
         time.sleep(POLL_INTERVAL)
-
 finally:
-    # Drop the latch so the HAT can cut 5 V once the Pi is halted
+    # drop the latch so the HAT can cut 5 V once the Pi is halted
     latch.off()
     print("Latch dropped – CarPiHAT will remove power.")
