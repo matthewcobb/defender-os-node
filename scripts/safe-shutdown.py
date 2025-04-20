@@ -3,7 +3,7 @@ from gpiozero import DigitalInputDevice
 import subprocess, time, sys
 
 IGN_PIN       = 12      # BCM12 – ACC sense (active‑LOW)
-IGN_LOW_TIME  = 10      # seconds to wait before shutdown
+IGN_LOW_TIME  = 60      # seconds to wait before shutdown
 POLL_INTERVAL = 0.1     # main‑loop tick
 
 # Leave the pin floating (no extra resistor) and declare it *active‑LOW*
