@@ -1,11 +1,14 @@
 [Unit]
-Description=CarPiHat initialisation
+Description=CarPiHAT safe‑shutdown monitor
+After=multi-user.target
 
 [Service]
 Type=simple
-
-ExecStart=/usr/bin/python3 /home/pi/defender-os-node/scripts/pi-shutdown.py
+ExecStart=/usr/bin/python3 /home/pi/defender-os-node/scripts/safe-shutdown.py
 WorkingDirectory=/home/pi/defender-os-node/scripts/
+Restart=no
+User=pi
+Group=pi
 
 [Install]
 WantedBy=multi-user.target
