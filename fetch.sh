@@ -51,6 +51,33 @@ if [ $pull_status -eq 0 ]; then
     else
         echo "🔍 No changes detected in app directory. Skipping npm install, build and restart."
     fi
+
+    if echo "$git_output" | grep -q "python/"; then
+        echo "📦 Changes detected in python directory."
+
+        # Navigate to python directory and update dependencies
+        echo "Updating Python dependencies..."
+        cd python || exit
+        source env/bin/activate
+
+        # Install requirements
+        pip install -r requirements.txt
+
+        # Check if pip install was successful
+        if [ $? -eq 0 ]; then
+            echo "✅ Python dependencies updated successfully."
+        else
+            echo "🛑 Failed to update Python dependencies."
+        fi
+
+        deactivate
+        echo "✨ Restarting server"
+        sudo systemctl restart defender-os-utilities-server.service
+        sudo systemctl status defender-os-utilities-server.service
+        echo "✅ Server restarted"
+    else
+        echo "🔍 No changes detected in python directory. Skipping dependency updates."
+    fi
 else
     echo "🛑 Failed to pull the latest changes."
     exit 1
