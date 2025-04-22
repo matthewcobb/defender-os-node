@@ -46,19 +46,30 @@ reverse_sensor = None
 if not USE_FALLBACK:
     try:
         # Initialize with lgpio pin factory
+        # Using pull-up resistor so the pin is normally HIGH when not in reverse
         reverse_sensor = DigitalInputDevice(
             REVERSE_PIN,
-            pull_up=True,  # Use pull-up resistor
-            active_state=False  # Active low (pulled down when active)
+            pull_up=True  # Use pull-up resistor (active state will be LOW by default)
         )
-        log.info(f"GPIO reverse sensor initialized on pin {REVERSE_PIN}")
+
+        # Log the initial state of the pin
+        initial_state = reverse_sensor.is_active
+        log.info(f"GPIO reverse sensor initialized on pin BCM{REVERSE_PIN} with pull-up")
+        log.info(f"Initial reverse sensor state: {'ACTIVE (in reverse)' if initial_state else 'INACTIVE (not in reverse)'}")
+
+        # Use the initial state to initialize our is_reversing state
+        is_reversing = initial_state
+        log.info(f"Setting initial reversing state to: {is_reversing}")
+
     except Exception as e:
         log.error(f"Failed to initialize GPIO: {e}")
         USE_FALLBACK = True
         log.warning("Using fallback mode - no GPIO functionality")
+        is_reversing = False
+else:
+    is_reversing = False
 
 # State tracking
-is_reversing = False
 debounce_time = 0.1  # seconds
 potential_new_state = None
 potential_state_time = 0
@@ -103,12 +114,13 @@ async def monitor_reverse_light():
                     # First detection of a change
                     potential_new_state = raw_state
                     potential_state_time = current_time
+                    log.debug(f"Potential state change detected: {raw_state}")
                 elif raw_state == potential_new_state:
                     # Same reading as potential - check if it's been stable long enough
                     if current_time - potential_state_time >= debounce_time:
                         # State has been stable for debounce period - accept the change
                         is_reversing = potential_new_state
-                        log.info(f"Reverse state changed to: {is_reversing}")
+                        log.info(f"Reverse state changed to: {'ACTIVE (in reverse)' if is_reversing else 'INACTIVE (not in reverse)'}")
                         potential_new_state = None
 
                         # Notify all connected clients
