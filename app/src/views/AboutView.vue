@@ -26,10 +26,6 @@
           <div class="avatar">MC</div>
           <small>Matthew Cobb</small>
         </div>
-        <div class="contributor">
-          <div class="avatar">RM</div>
-          <small>Rhys Morgan</small>
-        </div>
       </div>
     </div>
   </div>
