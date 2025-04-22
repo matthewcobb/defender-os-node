@@ -3,11 +3,9 @@
 # Path to splash image
 SPLASH_IMAGE="/home/pi/defender-os-node/boot/background.jpg"
 
-# Ensure we have a place to store the PID
-mkdir -p /tmp
+# Use GTK overlay app for a proper fullscreen overlay
+chmod +x /home/pi/defender-os-node/scripts/splash-overlay.py
+/home/pi/defender-os-node/scripts/splash-overlay.py "$SPLASH_IMAGE" &
 
-# For Wayland, we use swaybg instead of feh
-swaybg -i "$SPLASH_IMAGE" -m fill &
-
-# Save the process ID so we can kill it later
+# Save the process ID
 echo $! > /tmp/splash-pid.txt
