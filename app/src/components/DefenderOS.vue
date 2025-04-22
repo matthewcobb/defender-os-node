@@ -34,10 +34,19 @@ import { CarFront, Bolt, Info } from 'lucide-vue-next';
   height: 100%;
   background: linear-gradient(-45deg, #234432, #44534A, #202A24, #0e1310);
   background-size: 400% 400%;
-  animation: gradient 15s ease infinite;
   color: white;
   overflow: hidden;
   border-radius: 1rem;
+  animation: loading 0.4s ease-out, gradient 15s ease infinite;
+
+  @keyframes loading {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
 
   @keyframes gradient {
     0% {
