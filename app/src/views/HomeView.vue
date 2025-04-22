@@ -10,12 +10,6 @@
         :error="error"
       />
     </div>
-    <ToastMessage
-      :show="showToast"
-      :text="toastMessage"
-      :type="toastType"
-      @update:show="showToast = $event"
-    />
   </div>
 </template>
 
@@ -24,7 +18,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { apiService } from '../services/api';
 import SolarPanel from '../components/SolarPanel.vue';
 import LeisureBatteryPanel from '../components/LeisureBatteryPanel.vue';
-import ToastMessage from '../components/ToastMessage.vue';
+import { useToast } from '../features';
 
 // Debug flag - set to true to use mock data instead of API calls
 const USE_MOCK_DATA = false;
@@ -34,10 +28,8 @@ const solarData = ref({});
 const batteryData = ref({});
 let intervalId: number | null = null;
 
-// Toast state
-const showToast = ref(false);
-const toastMessage = ref('');
-const toastType = ref<'success' | 'error'>('success');
+// Use the global toast
+const { error: showError, success: showSuccess } = useToast();
 
 // Mock data for debug mode
 const mockRenogyData = [
@@ -88,12 +80,6 @@ const mockRenogyData = [
   }
 ];
 
-const displayToast = (message: string, type: 'success' | 'error') => {
-  toastMessage.value = message;
-  toastType.value = type;
-  showToast.value = true;
-};
-
 const fetchData = async () => {
   try {
     if (USE_MOCK_DATA) {
@@ -121,9 +107,9 @@ const fetchData = async () => {
 
 const handleErrorClick = () => {
   if (error.value) {
-    displayToast(error.value, 'error');
+    showError(error.value);
   } else {
-    displayToast('Connected', 'success');
+    showSuccess('Connected');
   }
 };
 

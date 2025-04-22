@@ -31,6 +31,7 @@ export const apiService = {
   removeSplashScreen: async () => {
     try {
       const response = await apiClient.post('/remove_splash');
+      console.log('Splash screen removal result:', response.data);
       return response.data;
     } catch (error) {
       console.error('Failed to remove splash screen:', error);

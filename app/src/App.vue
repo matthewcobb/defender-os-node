@@ -4,6 +4,13 @@
     <div class="carplay-container" ref="carplayContainer">
       <CarPlayDisplay v-if="width > 0" :width="width" :height="height" />
     </div>
+    <ToastMessage
+      :show="toastState.show"
+      :text="toastState.text"
+      :type="toastState.type"
+      :duration="toastState.duration"
+      @update:show="updateToastVisibility"
+    />
   </div>
 </template>
 
@@ -11,11 +18,20 @@
 import { ref, onMounted, nextTick } from 'vue';
 import CarPlayDisplay from './components/CarPlayDisplay.vue';
 import DefenderOS from './components/DefenderOS.vue';
+import ToastMessage from './components/ToastMessage.vue';
 import { apiService } from './features/system/services/api';
+import { useToast } from './features';
 
 const carplayContainer = ref<HTMLDivElement | null>(null);
 const width = ref(0);
 const height = ref(0);
+
+// Use the global toast system
+const { state: toastState, hideToast } = useToast();
+
+const updateToastVisibility = (show: boolean) => {
+  if (!show) hideToast();
+};
 
 onMounted(async () => {
   // Wait for next DOM update so container is rendered
@@ -29,8 +45,15 @@ onMounted(async () => {
 
   // Remove the splash screen once the app is fully loaded
   try {
-    await apiService.removeSplashScreen();
-    console.log('Splash screen removed');
+    const result = await apiService.removeSplashScreen();
+    if (result.status === 'success') {
+      const { success } = useToast();
+      success('App ready');
+    } else if (result.status === 'warning') {
+      console.log('Splash screen was already closed');
+    } else {
+      console.error('Failed to remove splash screen:', result.message);
+    }
   } catch (error) {
     console.error('Failed to remove splash screen:', error);
   }

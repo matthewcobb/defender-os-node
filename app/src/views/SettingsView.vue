@@ -55,18 +55,22 @@
 
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
+import { useToast } from '../features';
 import { apiService } from '../services/api';
 import { createPeriodicFetcher } from '../features/system/composables/useApi';
 
 const isUpdating = ref(false);
+const isClosingKiosk = ref(false);
 const updateMessage = ref('');
 const updateError = ref(false);
-const isClosingKiosk = ref(false);
 const kioskMessage = ref('');
 const kioskError = ref(false);
+const updateProgress = ref<any>(null);
+
+// Use the global toast system
+const { success, error } = useToast();
 
 // For tracking update status
-const updateProgress = ref<any>(null);
 let stopUpdateStatusPolling: (() => void) | null = null;
 
 const checkUpdateStatus = async () => {
@@ -128,17 +132,20 @@ const updateSystem = async () => {
 
     if (response.status === 'initiated') {
       updateMessage.value = 'Update started. Monitoring progress...';
+      success('Update started');
 
       // Start polling for update status
       stopUpdateStatusPolling = startUpdateStatusPolling();
     } else {
       updateError.value = true;
       updateMessage.value = response.message || 'Failed to start update process.';
+      error('Update failed to start');
     }
-  } catch (error) {
+  } catch (err) {
     updateError.value = true;
     updateMessage.value = 'Failed to update the system. Please try again.';
-    console.error('Update error:', error);
+    error('Update failed: Network error');
+    console.error('Update error:', err);
     isUpdating.value = false;
   }
 };
@@ -161,10 +168,12 @@ const closeKiosk = async () => {
     await apiService.closeKiosk();
 
     kioskMessage.value = 'Kiosk closed successfully.';
-  } catch (error) {
+    success('Kiosk closed successfully');
+  } catch (err) {
     kioskError.value = true;
     kioskMessage.value = 'Failed to close the kiosk. Please try again.';
-    console.error('Kiosk close error:', error);
+    error('Failed to close kiosk');
+    console.error('Kiosk close error:', err);
   } finally {
     // Reset closing status after 10 seconds to allow button re-use
     setTimeout(() => {

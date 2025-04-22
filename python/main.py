@@ -27,6 +27,7 @@ app.after_request(add_cors_headers)
 # Connect to Renogy devices on startup
 @app.before_serving
 async def before_serving():
+    # Connect to devices
     await connect_renogy()
 
 if __name__ == '__main__':
