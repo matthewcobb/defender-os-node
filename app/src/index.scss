@@ -1,6 +1,7 @@
 :root {
   --body-bg: #000000;
   --primary: #36d34b;
+  --danger: #ff4040;
   --translucent: rgba(0, 0, 0, 0.5);
   --top-bar-bg: rgba(18, 25, 21, 0.764);
   --active-carplay: #00e448;
@@ -20,6 +21,7 @@
 @import './styles/panel';
 @import './styles/components';
 @import './styles/grid';
+@import './styles/buttons';
 // @import './styles/spacing';
 // @import './styles/border';
 // @import './styles/progress';

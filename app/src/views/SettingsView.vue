@@ -5,7 +5,7 @@
 
       <div class="setting-item">
         <h4>Update System</h4>
-        <button class="action-button" @click="updateSystem" :disabled="isUpdating">
+        <button class="btn btn-primary" @click="updateSystem" :disabled="isUpdating">
           {{ isUpdating ? 'Updating...' : 'Update Now' }}
         </button>
       </div>
@@ -36,7 +36,7 @@
 
       <div class="setting-item">
         <h4>Close</h4>
-        <button class="action-button danger" @click="closeKiosk" :disabled="isClosingKiosk">
+        <button class="btn btn-danger" @click="closeKiosk" :disabled="isClosingKiosk">
           {{ isClosingKiosk ? 'Closing...' : 'Close Kiosk' }}
         </button>
       </div>
@@ -206,25 +206,6 @@ const closeKiosk = async () => {
   }
 }
 
-.action-button {
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-weight: 500;
-
-  &:hover {
-    background-color: #3e8e41;
-  }
-
-  &:disabled {
-    background-color: #888;
-    cursor: not-allowed;
-  }
-}
-
 .update-message {
   margin-top: 0.5rem;
   padding: 0.5rem;
@@ -236,7 +217,7 @@ const closeKiosk = async () => {
 
 .update-error {
   background-color: rgba(244, 67, 54, 0.1);
-  color: #f44336;
+  color: var(--danger);
 }
 
 .current-step {
@@ -288,14 +269,6 @@ const closeKiosk = async () => {
 
   &:last-child {
     border-bottom: none;
-  }
-}
-
-.danger {
-  background-color: #f44336;
-
-  &:hover {
-    background-color: #d32f2f;
   }
 }
 </style>

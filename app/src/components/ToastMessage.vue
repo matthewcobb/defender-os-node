@@ -55,11 +55,11 @@ watch(() => props.show, (newValue) => {
   animation: fade-in 0.3s ease-in-out;
 
   &.success {
-    background-color: var(--charging-base);
+    background-color: var(--primary);
   }
 
   &.error {
-    background-color: #e53935;
+    background-color: var(--danger);
   }
 }
 

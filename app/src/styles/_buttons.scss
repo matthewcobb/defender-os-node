@@ -1,0 +1,31 @@
+.btn {
+  --btn-color: var(--fgColor-base);
+  background: transparent;
+  border: 2px solid var(--btn-color);
+  color: var(--btn-color);
+  border-radius: 50cqh;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+
+  &:hover {
+    background-color: var(--btn-color);
+    color: var(--fgColor-base);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  --btn-color: var(--primary);
+}
+
+.btn-danger {
+  --btn-color: var(--danger);
+}
+
+
