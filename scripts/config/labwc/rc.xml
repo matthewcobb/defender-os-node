@@ -1,0 +1,29 @@
+<!-- Try installling all black chrome theme -->
+<?xml version="1.0"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <theme>
+    <font place="ActiveWindow"><name>PibotoLt</name><size>12</size><weight>Normal</weight><slant>Normal</slant></font>
+    <font place="InactiveWindow"><name>PibotoLt</name><size>12</size><weight>Normal</weight><slant>Normal</slant></font>
+    <name>PiXnoir</name>
+    <keepBorder>no</keepBorder>
+    <animateIconify>no</animateIconify>
+  </theme>
+
+  <mouse>
+    <cursor>
+      <theme>invisible</theme>
+      <size>1</size>
+    </cursor>
+  </mouse>
+
+  <desktops>
+    <background>
+      <solid color="#000000"/>
+    </background>
+  </desktops>
+
+  <touch deviceName="Waveshare  Waveshare " mapToOutput="HDMI-A-1" mouseEmulation="yes"/>
+  <libinput>
+    <device category="default"><leftHanded>no</leftHanded></device>
+  </libinput>
+</openbox_config>
