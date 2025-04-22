@@ -10,6 +10,10 @@ from gi.repository import Gtk, GdkPixbuf, Gdk, GLib
 # Path to the default image
 DEFAULT_IMAGE_PATH = "/home/pi/defender-os-node/boot/background.jpg"
 
+# Fallback display size if we can't detect monitor
+FALLBACK_WIDTH = 1600
+FALLBACK_HEIGHT = 600
+
 class SplashWindow(Gtk.Window):
     def __init__(self, image_path=None):
         Gtk.Window.__init__(self, title="Splash")
@@ -50,13 +54,11 @@ class SplashWindow(Gtk.Window):
         try:
             pixbuf = GdkPixbuf.Pixbuf.new_from_file(self.image_path)
 
-            # Get display size
-            display = Gdk.Display.get_default()
-            monitor = display.get_primary_monitor()
-            geometry = monitor.get_geometry()
+            # Get display size with better error handling
+            width, height = self._get_display_size()
+            print(f"Using display size: {width}x{height}")
 
             # Scale image
-            width, height = geometry.width, geometry.height
             pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.BILINEAR)
 
             # Create image widget
@@ -70,6 +72,37 @@ class SplashWindow(Gtk.Window):
         # Save PID to file for later cleanup
         with open('/tmp/splash-pid.txt', 'w') as f:
             f.write(str(os.getpid()))
+
+    def _get_display_size(self):
+        """Get display dimensions with fallbacks for Wayland"""
+        try:
+            # Try modern approach first
+            display = Gdk.Display.get_default()
+            if display:
+                monitor = display.get_primary_monitor()
+                if monitor:
+                    geometry = monitor.get_geometry()
+                    return geometry.width, geometry.height
+
+            # Fallback to screen approach
+            screen = Gdk.Screen.get_default()
+            if screen:
+                width = screen.get_width()
+                height = screen.get_height()
+                if width > 0 and height > 0:
+                    return width, height
+
+            # If we're here, try to get current window size
+            allocation = self.get_allocation()
+            if allocation.width > 100 and allocation.height > 100:
+                return allocation.width, allocation.height
+
+        except Exception as e:
+            print(f"Error detecting screen size: {e}")
+
+        # Final fallback to hardcoded values
+        print(f"Using fallback display size: {FALLBACK_WIDTH}x{FALLBACK_HEIGHT}")
+        return FALLBACK_WIDTH, FALLBACK_HEIGHT
 
     def on_click(self, widget, event):
         """Exit when clicked anywhere"""
