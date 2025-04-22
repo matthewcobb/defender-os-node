@@ -106,16 +106,5 @@ import { CarFront, Bolt, Info } from 'lucide-vue-next';
   overflow-x: hidden;
   box-sizing: border-box;
   padding-bottom: 5rem;
-  &::-webkit-scrollbar {
-    width: 0.75rem;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--translucent);
-    border-radius: 0.5rem;
-    border: 0.2rem solid var(--panel-bg);
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
 }
 </style>

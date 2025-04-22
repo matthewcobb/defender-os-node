@@ -242,7 +242,7 @@ const closeKiosk = async () => {
 .current-step {
   margin-top: 1rem;
   padding: 0.75rem;
-  background-color: rgba(33, 150, 243, 0.1);
+  background-color: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
   display: flex;
   align-items: flex-start;

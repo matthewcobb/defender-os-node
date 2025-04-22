@@ -46,6 +46,18 @@ body {
   background-color: var(--body-bg);
   color: var(--fgColor-base);
   animation: bootAnimation 1s ease-out;
+
+  &::-webkit-scrollbar {
+    width: 0.75rem;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--translucent);
+    border-radius: 0.5rem;
+    border: 0.2rem solid var(--panel-bg);
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 @keyframes bootAnimation {
