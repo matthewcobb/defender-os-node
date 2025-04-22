@@ -5,8 +5,13 @@ import logging
 import subprocess
 import os
 import asyncio
+import platform
 import re
 from gpiozero import CPUTemperature
+
+# Configure logging
+log = logging.getLogger('system_service')
+
 from config.settings import PROJECT_ROOT, APP_DIR
 from flask import jsonify
 

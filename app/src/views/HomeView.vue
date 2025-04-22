@@ -21,7 +21,7 @@ import LeisureBatteryPanel from '../components/LeisureBatteryPanel.vue';
 import { useToast } from '../features';
 
 // Debug flag - set to true to use mock data instead of API calls
-const USE_MOCK_DATA = false;
+const USE_MOCK_DATA = true;
 
 const error = ref('Connecting...');
 const solarData = ref({});

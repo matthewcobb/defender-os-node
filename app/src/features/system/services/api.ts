@@ -5,7 +5,7 @@ const API_URL = 'http://0.0.0.0:5000';
 // Create an axios instance with base configuration
 const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   }
@@ -81,6 +81,18 @@ export const apiService = {
   getRenogyData: async () => {
     try {
       const response = await apiClient.get('/renogy_data');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get the current GPIO status
+   */
+  getGpioStatus: async () => {
+    try {
+      const response = await apiClient.get('/gpio/status');
       return response.data;
     } catch (error) {
       throw error;

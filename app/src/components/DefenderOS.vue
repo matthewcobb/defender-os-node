@@ -8,6 +8,9 @@
       <router-link to="/settings" class="tab">
         <Bolt :size="32" />
       </router-link>
+      <router-link to="/reverse" class="tab">
+        <Video :size="32" />
+      </router-link>
       <router-link to="/about" class="tab">
         <Info :size="32" />
       </router-link>
@@ -20,7 +23,7 @@
 
 <script setup lang="ts">
 import TopBar from './TopBar.vue';
-import { CarFront, Bolt, Info } from 'lucide-vue-next';
+import { CarFront, Bolt, Info, Video } from 'lucide-vue-next';
 // DefenderOS component serves as a container for various subpages
 </script>
 

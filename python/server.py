@@ -16,6 +16,7 @@ from services.system_service import (
     get_update_status,
     update_status
 )
+from controllers.gpio_controller import gpio_bp, monitor_reverse_light
 from utils.middleware import add_cors_headers
 
 # Configure logging
@@ -26,6 +27,9 @@ log.setLevel(logging.INFO)
 # Create app
 app = Quart(__name__)
 
+# Register blueprints
+app.register_blueprint(gpio_bp)
+
 # Add CORS headers to all responses
 @app.after_request
 async def cors_middleware(response):
@@ -34,6 +38,9 @@ async def cors_middleware(response):
 @app.before_serving
 async def before_serving():
     await connect()
+
+    # Start reverse light monitoring in background
+    app.add_background_task(monitor_reverse_light)
 
 async def fetch_renogy_data():
     return await fetch_data()
