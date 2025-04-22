@@ -12,17 +12,27 @@ log = logging.getLogger('gpio_controller')
 USE_FALLBACK = False
 
 try:
+    # First import RPi.GPIO for the pin factory
+    import RPi.GPIO as GPIO
+    log.info("RPi.GPIO module loaded")
+
+    # Import gpiozero and set the default pin factory
     from gpiozero import DigitalInputDevice
-    log.info("Using gpiozero module for Raspberry Pi")
+    from gpiozero.pins.rpigpio import RPiGPIOFactory
+    from gpiozero import Device
+
+    # Set the default pin factory to RPi.GPIO
+    Device.pin_factory = RPiGPIOFactory()
+    log.info("Using gpiozero with RPi.GPIO pin factory")
 except ImportError as e:
-    log.error(f"Failed to import gpiozero: {e}")
+    log.error(f"Failed to import GPIO modules: {e}")
     USE_FALLBACK = True
     log.warning("Using fallback mode - no GPIO functionality")
 
 gpio_bp = Blueprint('gpio', __name__, url_prefix='/gpio')
 
 # GPIO pin for reverse light detection
-REVERSE_PIN = 7  # GPIO pin number
+REVERSE_PIN = 7  # GPIO pin number (BCM numbering)
 
 # Store active WebSocket connections
 active_connections = set()
