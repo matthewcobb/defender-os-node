@@ -3,14 +3,14 @@
 # Renogy device configurations
 DCDC_CONFIG = {
     'type': 'RNG_CTRL',
-    'mac_address': 'FC:A8:9B:26:D2:DC',
+    'mac_address': 'AC:4D:16:19:14:1A',
     'name': 'BT-TH-9B26D2DC',
     'device_id': 255
 }
 
 BATTERY_CONFIG = {
     'type': 'RNG_BATT',
-    'mac_address': 'AC:4D:16:19:14:1A',
+    'mac_address': 'FC:A8:9B:26:D2:DC',
     'name': 'BT-TH-9B26D2DC',
     'device_id': 255
 }
