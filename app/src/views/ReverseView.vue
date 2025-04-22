@@ -53,6 +53,7 @@ const clearCloseTimer = () => {
 
 // Watch the isReversing state from the shared GPIO service
 watch(isReversing, (newValue) => {
+  console.log('isReversing', newValue);
   // If this is a reverse state event, mark this as coming from the sensor
   if (newValue === true) {
     isFromReverseSensor.value = true;

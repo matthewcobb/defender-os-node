@@ -2,50 +2,42 @@ from quart import Blueprint, jsonify, websocket
 import asyncio
 import logging
 import json
-import random
 import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger('gpio_controller')
 
-# Simple flag to control whether to use real or simulated GPIO
-# Set to True for development/debugging on systems without GPIO hardware
-DEBUG_GPIO = True
+# Set to False for production on Raspberry Pi 5
+DEBUG_GPIO = False
 
 try:
     import gpiod
-    log.info("Using real gpiod module")
+    log.info("Using gpiod module for Raspberry Pi 5")
 except ImportError as e:
     log.error(f"Failed to import gpiod: {e}")
-    log.warning("Forcing DEBUG_GPIO mode")
-    DEBUG_GPIO = True
+    raise ImportError("GPIO module is required for Raspberry Pi operation")
 
 gpio_bp = Blueprint('gpio', __name__, url_prefix='/gpio')
 
-# Default GPIO pin for reverse light detection
+# GPIO pin for reverse light detection
 REVERSE_PIN = 7  # GPIO pin number
 
 # Store active WebSocket connections
 active_connections = set()
 
-# For mock mode
-mock_reverse_value = False
-
 # GPIO setup
 chip = None
 reverse_line = None
 
-if not DEBUG_GPIO:
-    try:
-        chip = gpiod.Chip('gpiochip0')  # Default chip on Raspberry Pi
-        reverse_line = chip.get_line(REVERSE_PIN)
-        reverse_line.request(consumer="defender-os", type=gpiod.LINE_REQ_DIR_IN, flags=gpiod.LINE_REQ_FLAG_ACTIVE_LOW)
-        log.info(f"GPIO reverse sensor initialized on pin {REVERSE_PIN}")
-    except Exception as e:
-        log.error(f"Failed to initialize GPIO reverse sensor: {e}")
-        log.warning("Forcing DEBUG_GPIO mode")
-        DEBUG_GPIO = True
+try:
+    chip = gpiod.Chip('gpiochip0')  # Default chip on Raspberry Pi
+    reverse_line = chip.get_line(REVERSE_PIN)
+    reverse_line.request(consumer="defender-os", type=gpiod.LINE_REQ_DIR_IN, flags=gpiod.LINE_REQ_FLAG_ACTIVE_LOW)
+    log.info(f"GPIO reverse sensor initialized on pin {REVERSE_PIN}")
+except Exception as e:
+    log.error(f"Failed to initialize GPIO reverse sensor: {e}")
+    raise RuntimeError(f"Failed to initialize GPIO: {e}")
 
 # State tracking
 is_reversing = False
@@ -70,17 +62,8 @@ async def broadcast_message(message_data):
             active_connections.discard(connection)
 
 def read_gpio_state():
-    """Read the current GPIO state, handling both real and debug modes"""
-    global mock_reverse_value
-
-    if DEBUG_GPIO:
-        # Randomly change mock state occasionally (5% chance)
-        if random.random() < 0.05:
-            mock_reverse_value = not mock_reverse_value
-        return mock_reverse_value
-    else:
-        # Use real GPIO
-        return bool(reverse_line.get_value())
+    """Read the current GPIO state"""
+    return bool(reverse_line.get_value())
 
 async def monitor_reverse_light():
     """Background task to monitor the reverse light status and notify clients"""

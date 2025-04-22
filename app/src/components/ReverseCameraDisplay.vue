@@ -149,6 +149,7 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .reverse-camera-display {
+  background-color: #000;
   position: relative;
   width: 100%;
   height: 100%;
