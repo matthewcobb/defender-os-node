@@ -53,12 +53,18 @@ if not USE_FALLBACK:
         )
 
         # Log the initial state of the pin
-        initial_state = reverse_sensor.is_active
+        initial_pin_state = reverse_sensor.is_active
+
+        # IMPORTANT: We need to invert the logic - pin is active (LOW) when
+        # the reverse light circuit is complete, but we were reading this backwards
+        initial_reverse_state = not initial_pin_state
+
         log.info(f"GPIO reverse sensor initialized on pin BCM{REVERSE_PIN} with pull-up")
-        log.info(f"Initial reverse sensor state: {'ACTIVE (in reverse)' if initial_state else 'INACTIVE (not in reverse)'}")
+        log.info(f"Initial reverse sensor pin state: {'ACTIVE (LOW)' if initial_pin_state else 'INACTIVE (HIGH)'}")
+        log.info(f"Initial car reverse state: {'IN REVERSE' if initial_reverse_state else 'NOT IN REVERSE'}")
 
         # Use the initial state to initialize our is_reversing state
-        is_reversing = initial_state
+        is_reversing = initial_reverse_state
         log.info(f"Setting initial reversing state to: {is_reversing}")
 
     except Exception as e:
@@ -95,7 +101,10 @@ def read_gpio_state():
     if USE_FALLBACK:
         # In fallback mode, always return False (not reversing)
         return False
-    return reverse_sensor.is_active
+    # Invert the value from the sensor to get the correct reversing state
+    # When pin is active (LOW), the car is NOT in reverse
+    # When pin is inactive (HIGH), the car IS in reverse
+    return not reverse_sensor.is_active
 
 async def monitor_reverse_light():
     """Background task to monitor the reverse light status and notify clients"""
@@ -120,7 +129,7 @@ async def monitor_reverse_light():
                     if current_time - potential_state_time >= debounce_time:
                         # State has been stable for debounce period - accept the change
                         is_reversing = potential_new_state
-                        log.info(f"Reverse state changed to: {'ACTIVE (in reverse)' if is_reversing else 'INACTIVE (not in reverse)'}")
+                        log.info(f"Reverse state changed to: {'IN REVERSE' if is_reversing else 'NOT IN REVERSE'}")
                         potential_new_state = None
 
                         # Notify all connected clients
