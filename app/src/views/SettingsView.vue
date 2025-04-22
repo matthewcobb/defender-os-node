@@ -56,7 +56,7 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
 import { useToast } from '../features';
-import { apiService } from '../services/api';
+import { apiService } from '../features/system/services/api';
 import { createPeriodicFetcher } from '../features/system/composables/useApi';
 
 const isUpdating = ref(false);

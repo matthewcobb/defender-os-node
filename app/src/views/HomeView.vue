@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import { apiService } from '../services/api';
+import { apiService } from '../features/system/services/api';
 import SolarPanel from '../components/SolarPanel.vue';
 import LeisureBatteryPanel from '../components/LeisureBatteryPanel.vue';
 import { useToast } from '../features';
