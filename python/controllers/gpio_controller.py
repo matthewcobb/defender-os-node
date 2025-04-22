@@ -12,20 +12,22 @@ log = logging.getLogger('gpio_controller')
 USE_FALLBACK = False
 
 try:
-    # First import RPi.GPIO for the pin factory
-    import RPi.GPIO as GPIO
-    log.info("RPi.GPIO module loaded")
+    # For Raspberry Pi 5, we need to use the lgpio pin factory
+    # First, make sure lgpio is imported
+    import lgpio
+    log.info("lgpio module loaded for Raspberry Pi 5")
 
-    # Import gpiozero and set the default pin factory
+    # Import gpiozero and set the pin factory
     from gpiozero import DigitalInputDevice
-    from gpiozero.pins.rpigpio import RPiGPIOFactory
     from gpiozero import Device
+    from gpiozero.pins.lgpio import LGPIOFactory
 
-    # Set the default pin factory to RPi.GPIO
-    Device.pin_factory = RPiGPIOFactory()
-    log.info("Using gpiozero with RPi.GPIO pin factory")
+    # Set the default pin factory to lgpio
+    Device.pin_factory = LGPIOFactory()
+    log.info("Using gpiozero with lgpio pin factory for Raspberry Pi 5")
 except ImportError as e:
     log.error(f"Failed to import GPIO modules: {e}")
+    log.warning("To install lgpio: 'sudo apt install -y python3-lgpio'")
     USE_FALLBACK = True
     log.warning("Using fallback mode - no GPIO functionality")
 
@@ -43,10 +45,10 @@ reverse_sensor = None
 # Try to initialize GPIO only if we have the module
 if not USE_FALLBACK:
     try:
-        # gpiozero automatically handles the chip detection
+        # Initialize with lgpio pin factory
         reverse_sensor = DigitalInputDevice(
             REVERSE_PIN,
-            pull_up=False,  # Use external pull-up/down resistors
+            pull_up=True,  # Use pull-up resistor
             active_state=False  # Active low (pulled down when active)
         )
         log.info(f"GPIO reverse sensor initialized on pin {REVERSE_PIN}")
