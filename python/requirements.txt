@@ -3,7 +3,7 @@ uvicorn
 flask
 quart
 bleak
-gpiozero
 
 # Platform-specific dependencies
-RPi.GPIO; platform_system == "Linux"
+gpiod; platform_system == "Linux"
+gpiozero; platform_system == "Linux"

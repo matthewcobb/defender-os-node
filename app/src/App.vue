@@ -15,12 +15,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import CarPlayDisplay from './components/CarPlayDisplay.vue';
 import DefenderOS from './components/DefenderOS.vue';
 import ToastMessage from './components/ToastMessage.vue';
 import { apiService } from './features/system/services/api';
 import { useToast } from './features';
+import { initGpioService, disconnect } from './features/system/services/gpio';
 
 const carplayContainer = ref<HTMLDivElement | null>(null);
 const width = ref(0);
@@ -32,6 +34,9 @@ const { state: toastState, hideToast } = useToast();
 const updateToastVisibility = (show: boolean) => {
   if (!show) hideToast();
 };
+// Initialize the GPIO service
+const router = useRouter();
+initGpioService(router);
 
 onMounted(async () => {
   // Wait for next DOM update so container is rendered
@@ -57,6 +62,11 @@ onMounted(async () => {
   } catch (error) {
     console.error('Failed to remove splash screen:', error);
   }
+});
+
+onUnmounted(() => {
+  // Clean up GPIO service when app is unmounted
+  disconnect();
 });
 </script>
 
