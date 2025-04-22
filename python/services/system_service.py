@@ -5,15 +5,19 @@ import logging
 import subprocess
 import os
 import asyncio
+import re
 from gpiozero import CPUTemperature
 from config.settings import PROJECT_ROOT, APP_DIR
 from flask import jsonify
 
-# Initialize update status
+# Path to the fetch.sh script
+FETCH_SCRIPT = os.path.join(PROJECT_ROOT, "fetch.sh")
+
+# Initialize update status with a simpler structure
 update_status = {
     "overall_status": "not_started",
-    "steps": [],
-    "current_step": -1,
+    "logs": [],
+    "current_step": None,
     "error": None
 }
 
@@ -50,127 +54,89 @@ async def start_system_update():
         return {"error": str(e)}, 500
 
 async def run_system_update():
-    """Run the system update steps and report progress"""
-    update_steps = [
-        {"name": "git_pull", "status": "pending", "message": "Pulling latest changes..."},
-        {"name": "npm_install", "status": "pending", "message": "Installing dependencies..."},
-        {"name": "npm_build", "status": "pending", "message": "Building application..."},
-        {"name": "restart", "status": "pending", "message": "Restarting services..."}
-    ]
+    """Run the system update by calling the fetch.sh script and relaying its output"""
+    global update_status
+
+    # Reset update status
+    update_status = {
+        "overall_status": "in_progress",
+        "logs": [],
+        "current_step": None,
+        "error": None
+    }
+
+    logging.info(f"Starting system update using {FETCH_SCRIPT}")
 
     try:
-        # Store global update status
-        global update_status
-        update_status = {
-            "overall_status": "in_progress",
-            "steps": update_steps,
-            "current_step": 0,
-            "error": None
-        }
-
-        # Step 1: Git pull
-        update_status["current_step"] = 0
-        update_status["steps"][0]["status"] = "in_progress"
-        logging.info("Running git pull...")
-
-        process = subprocess.run(
-            ["git", "pull", "origin", "main"],
-            cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True,
-            check=False
+        # Create a process to run the fetch.sh script
+        process = await asyncio.create_subprocess_exec(
+            FETCH_SCRIPT,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
 
-        if process.returncode != 0:
-            raise Exception(f"Git pull failed: {process.stderr}")
+        # Regular expression to extract progress information
+        progress_pattern = re.compile(r'\[PROGRESS:(\w+):(\w+):(\w+)\]')
 
-        update_status["steps"][0]["status"] = "complete"
-        update_status["steps"][0]["output"] = process.stdout
-        logging.info("Git pull completed successfully")
+        # Process stdout in real-time
+        while True:
+            line_bytes = await process.stdout.readline()
+            if not line_bytes:
+                break
 
-        # Step 2: npm install
-        update_status["current_step"] = 1
-        update_status["steps"][1]["status"] = "in_progress"
-        logging.info("Running npm install...")
+            line = line_bytes.decode('utf-8').strip()
 
-        # Get environment with PATH
-        env = os.environ.copy()
+            # Add line to logs
+            update_status["logs"].append(line)
+            logging.info(f"Update output: {line}")
 
-        # Run npm install with a login shell that will load .bashrc/.bash_profile
-        process = subprocess.run(
-            ["/bin/bash", "-l", "-c", f"cd {APP_DIR} && npm install"],
-            capture_output=True,
-            text=True,
-            check=False,
-            env=env
-        )
+            # Check for progress markers
+            match = progress_pattern.search(line)
+            if match:
+                action_type = match.group(1)
+                step_name = match.group(2)
+                status = match.group(3)
 
-        if process.returncode != 0:
-            raise Exception(f"npm install failed: {process.stderr}")
+                if action_type == "STEP" and status == "started":
+                    # Update current step when a new step starts
+                    update_status["current_step"] = {
+                        "name": step_name,
+                        "status": "in_progress",
+                        "message": line.split("] ")[1] if "] " in line else ""
+                    }
 
-        update_status["steps"][1]["status"] = "complete"
-        update_status["steps"][1]["output"] = process.stdout
-        logging.info("npm install completed successfully")
+                elif action_type == "OVERALL" and status in ["completed", "failed"]:
+                    update_status["overall_status"] = "complete" if status == "completed" else "failed"
 
-        # Step 3: npm run build
-        update_status["current_step"] = 2
-        update_status["steps"][2]["status"] = "in_progress"
-        logging.info("Running npm run build...")
+        # Process stderr if there's any
+        stderr_data = await process.stderr.read()
+        stderr_text = stderr_data.decode('utf-8').strip()
+        if stderr_text:
+            logging.error(f"Update stderr: {stderr_text}")
+            update_status["logs"].append(f"❌ Error: {stderr_text}")
+            if update_status["overall_status"] != "failed":
+                update_status["overall_status"] = "failed"
+                update_status["error"] = stderr_text
 
-        # Run npm build with a login shell that will load .bashrc/.bash_profile
-        process = subprocess.run(
-            ["/bin/bash", "-l", "-c", f"cd {APP_DIR} && npm run build"],
-            capture_output=True,
-            text=True,
-            check=False,
-            env=env
-        )
+        # Wait for process to complete
+        await process.wait()
 
-        if process.returncode != 0:
-            raise Exception(f"npm run build failed: {process.stderr}")
+        # If process exited with non-zero and we haven't already set a failure status
+        if process.returncode != 0 and update_status["overall_status"] != "failed":
+            error_msg = f"Update process exited with code {process.returncode}"
+            update_status["overall_status"] = "failed"
+            update_status["error"] = error_msg
+            update_status["logs"].append(f"❌ {error_msg}")
+            logging.error(error_msg)
 
-        update_status["steps"][2]["status"] = "complete"
-        update_status["steps"][2]["output"] = process.stdout
-        logging.info("npm run build completed successfully")
-
-        # Step 4: restart services
-        update_status["current_step"] = 3
-        update_status["steps"][3]["status"] = "in_progress"
-        logging.info("Restarting services...")
-
-        # Run pm2 restart with a login shell that will load .bashrc/.bash_profile
-        process = subprocess.run(
-            ["/bin/bash", "-l", "-c", "pm2 restart defender-os-server"],
-            capture_output=True,
-            text=True,
-            check=False,
-            env=env
-        )
-
-        if process.returncode != 0:
-            raise Exception(f"Service restart failed: {process.stderr}")
-
-        update_status["steps"][3]["status"] = "complete"
-        update_status["steps"][3]["output"] = process.stdout
-        logging.info("Services restarted successfully")
-
-        # Update overall status
-        update_status["overall_status"] = "complete"
-        logging.info("Update process completed successfully")
+        logging.info(f"Update process completed with status: {update_status['overall_status']}")
 
     except Exception as e:
         error_msg = str(e)
-        logging.error(f"Update failed: {error_msg}")
-
-        # Mark current step as failed
-        if "current_step" in update_status:
-            current_step = update_status["current_step"]
-            if current_step < len(update_status["steps"]):
-                update_status["steps"][current_step]["status"] = "failed"
-                update_status["steps"][current_step]["error"] = error_msg
-
+        logging.error(f"Error running update script: {error_msg}")
         update_status["overall_status"] = "failed"
         update_status["error"] = error_msg
+        update_status["logs"].append(f"❌ {error_msg}")
 
 def get_update_status():
     """Get the current status of the system update"""

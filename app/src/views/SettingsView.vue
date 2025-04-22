@@ -13,29 +13,23 @@
         {{ updateMessage }}
       </div>
 
-      <div v-if="updateProgress && updateProgress.steps && updateProgress.steps.length > 0" class="update-progress">
-        <div
-          v-for="(step, index) in updateProgress.steps"
-          :key="step.name"
-          class="progress-step"
-          :class="{
-            'step-pending': step.status === 'pending',
-            'step-in-progress': step.status === 'in_progress',
-            'step-complete': step.status === 'complete',
-            'step-failed': step.status === 'failed'
-          }"
-        >
-          <div class="step-indicator">
-            <span v-if="step.status === 'complete'">✓</span>
-            <span v-else-if="step.status === 'failed'">✗</span>
-            <span v-else-if="step.status === 'in_progress'">●</span>
-            <span v-else>○</span>
-          </div>
-          <div class="step-details">
-            <div class="step-name">{{ step.message || `Step ${index + 1}` }}</div>
-            <div v-if="step.status === 'failed' && step.error" class="step-error">
-              {{ step.error }}
-            </div>
+      <!-- Display current step if available -->
+      <div v-if="updateProgress && updateProgress.current_step" class="current-step">
+        <div class="step-indicator">
+          <span class="step-icon">🔄</span>
+        </div>
+        <div class="step-details">
+          <div class="step-name">{{ formatStepName(updateProgress.current_step.name) }}</div>
+          <div class="step-message">{{ updateProgress.current_step.message }}</div>
+        </div>
+      </div>
+
+      <!-- Display logs from the update process -->
+      <div v-if="updateProgress && updateProgress.logs && updateProgress.logs.length > 0" class="update-logs">
+        <h4>Update Log</h4>
+        <div class="logs-container">
+          <div v-for="(log, index) in updateProgress.logs" :key="index" class="log-line">
+            {{ log }}
           </div>
         </div>
       </div>
@@ -73,15 +67,28 @@ const { success, error } = useToast();
 // For tracking update status
 let stopUpdateStatusPolling: (() => void) | null = null;
 
+// Format step name to be more readable
+const formatStepName = (name: string) => {
+  if (!name) return '';
+
+  // Convert snake_case to Title Case
+  return name.split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 const checkUpdateStatus = async () => {
   try {
     const status = await apiService.getUpdateStatus();
     updateProgress.value = status;
 
-    // Update message based on current step
-    if (status.overall_status === 'in_progress' && status.current_step >= 0 && status.steps.length > 0) {
-      const currentStep = status.steps[status.current_step];
-      updateMessage.value = `${currentStep.message} (Step ${status.current_step + 1}/${status.steps.length})`;
+    // Update message based on current status
+    if (status.overall_status === 'in_progress') {
+      if (status.current_step) {
+        updateMessage.value = `Update in progress: ${formatStepName(status.current_step.name)}`;
+      } else {
+        updateMessage.value = 'Update in progress...';
+      }
     } else if (status.overall_status === 'complete') {
       updateMessage.value = 'Update completed successfully! The page will reload shortly...';
 
@@ -232,77 +239,55 @@ const closeKiosk = async () => {
   color: #f44336;
 }
 
-.update-progress {
+.current-step {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: rgba(33, 150, 243, 0.1);
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.step-indicator {
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+}
+
+.step-details {
+  flex-grow: 1;
+}
+
+.step-name {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.update-logs {
   margin-top: 1rem;
   margin-bottom: 1rem;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.2);
 }
 
-.progress-step {
-  display: flex;
-  align-items: flex-start;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.logs-container {
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.85rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.log-line {
+  padding: 0.15rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: pre-wrap;
 
   &:last-child {
     border-bottom: none;
-  }
-}
-
-.step-indicator {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-  border-radius: 50%;
-  font-size: 12px;
-}
-
-.step-details {
-  flex: 1;
-}
-
-.step-name {
-  font-size: 0.9rem;
-}
-
-.step-error {
-  font-size: 0.8rem;
-  color: #f44336;
-  margin-top: 0.25rem;
-}
-
-.step-pending {
-  opacity: 0.5;
-
-  .step-indicator {
-    color: #aaa;
-  }
-}
-
-.step-in-progress {
-  .step-indicator {
-    color: #2196F3;
-  }
-
-  .step-name {
-    color: #2196F3;
-  }
-}
-
-.step-complete {
-  .step-indicator {
-    color: #4CAF50;
-  }
-}
-
-.step-failed {
-  .step-indicator {
-    color: #f44336;
   }
 }
 
@@ -311,11 +296,6 @@ const closeKiosk = async () => {
 
   &:hover {
     background-color: #d32f2f;
-  }
-
-  &:disabled {
-    background-color: #888;
-    cursor: not-allowed;
   }
 }
 </style>
