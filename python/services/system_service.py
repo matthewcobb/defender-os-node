@@ -7,6 +7,7 @@ import os
 import asyncio
 from gpiozero import CPUTemperature
 from config.settings import PROJECT_ROOT, APP_DIR
+from flask import jsonify
 
 # Initialize update status
 update_status = {
@@ -174,3 +175,18 @@ async def run_system_update():
 def get_update_status():
     """Get the current status of the system update"""
     return update_status, 200
+
+async def remove_splash_screen():
+    """Remove the splash screen that's displayed during boot"""
+    try:
+        import subprocess
+        subprocess.run(['/home/pi/defender-os-node/scripts/remove-splash.sh'], check=True)
+        return jsonify({
+            'status': 'success',
+            'message': 'Splash screen removed'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to remove splash screen: {str(e)}'
+        })

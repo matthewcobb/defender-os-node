@@ -14,7 +14,7 @@ CLONE_DIR="/home/pi/defender-os-node"
 # Update and install dependencies
 echo -e "${BLUE}Updating and installing dependencies...${RESET}"
 sudo apt update
-sudo apt install -y chromium-browser libudev-dev curl python3-pip python3-venv plymouth gpiod
+sudo apt install -y chromium-browser libudev-dev curl python3-pip python3-venv plymouth gpiod swaybg
 
 # # Install Wayfire Plugins
 # sudo cp scripts/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so /usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so
@@ -111,7 +111,18 @@ echo -e "${BLUE}Copying defender-os.desktop to autostart...${RESET}"
 sudo mkdir -p ~/.config/autostart
 sudo cp "$CLONE_DIR/scripts/defender-os.desktop" ~/.config/autostart/defender-os.desktop
 
-# Add smart shutdown service
+# Setup labwc autostart script
+echo -e "${BLUE}Setting up labwc autostart for splash screen...${RESET}"
+mkdir -p ~/.config/labwc
+cp "$CLONE_DIR/scripts/labwc-autostart.sh" ~/.config/labwc/autostart
+chmod +x ~/.config/labwc/autostart
+
+# Make splash screen scripts executable
+echo -e "${BLUE}Setting up splash screen scripts...${RESET}"
+chmod +x "$CLONE_DIR/scripts/display-splash.sh"
+chmod +x "$CLONE_DIR/scripts/remove-splash.sh"
+
+# Add smart shutdown service
 echo -e "${BLUE}Adding smart shutdown service...${RESET}"
 sudo cp "$CLONE_DIR/scripts/carpihat-shutdown.service" /etc/systemd/system/carpihat-shutdown.service
 #sudo systemctl enable carpihat-shutdown.service

@@ -77,7 +77,6 @@ if [ $pull_status -eq 0 ]; then
         # Check if restart was successful
         if sudo systemctl is-active --quiet defender-os-utilities-server.service; then
             echo "✅ Server restart successful"
-            sudo systemctl status defender-os-utilities-server.service
         else
             echo "🛑 Server restart failed"
             sudo systemctl status defender-os-utilities-server.service

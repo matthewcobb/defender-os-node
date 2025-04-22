@@ -6,7 +6,8 @@ from services.system_service import (
     get_cpu_temperature,
     close_kiosk,
     start_system_update,
-    get_update_status
+    get_update_status,
+    remove_splash_screen
 )
 
 # Create Blueprint for system routes
@@ -31,3 +32,8 @@ async def update_status():
 async def close_kiosk_browser():
     """Close Chrome/Chromium kiosk browser"""
     return await close_kiosk()
+
+@system_bp.route('/remove_splash', methods=['POST'])
+async def remove_splash():
+    """Remove the boot splash screen"""
+    return await remove_splash_screen()

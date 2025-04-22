@@ -25,5 +25,18 @@ export const apiService = {
     }
   },
 
+  /**
+   * Remove the splash screen displayed during boot
+   */
+  removeSplashScreen: async () => {
+    try {
+      const response = await apiClient.post('/remove_splash');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to remove splash screen:', error);
+      throw error;
+    }
+  },
+
   // Add more API methods here as needed
 };
