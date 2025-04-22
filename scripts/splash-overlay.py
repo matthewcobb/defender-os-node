@@ -1,49 +1,126 @@
 #!/usr/bin/env python3
 import sys
 import gi
+import os
+from pathlib import Path
+
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GdkPixbuf, Gdk
+from gi.repository import Gtk, GdkPixbuf, Gdk, GLib
+
+# Path to the default image
+DEFAULT_IMAGE_PATH = "/home/pi/defender-os-node/boot/background.jpg"
 
 class SplashWindow(Gtk.Window):
-    def __init__(self, image_path):
+    def __init__(self, image_path=None):
         Gtk.Window.__init__(self, title="Splash")
 
-        # Make fullscreen and always on top
+        # Check if either image exists before proceeding
+        has_image = False
+        if image_path and os.path.exists(image_path):
+            print(f"Found provided image: {image_path}")
+            self.image_path = image_path
+            has_image = True
+        elif os.path.exists(DEFAULT_IMAGE_PATH):
+            print(f"Found default image: {DEFAULT_IMAGE_PATH}")
+            self.image_path = DEFAULT_IMAGE_PATH
+            has_image = True
+
+        # Exit if no image is found
+        if not has_image:
+            print("No image found. Exiting without showing splash.")
+            sys.exit(0)
+
+        # Make fullscreen and set priority
         self.fullscreen()
         self.set_keep_above(True)
 
-        # Set black background
-        self.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 0, 0, 1))
+        # Set black background using CSS
+        self._setup_css()
 
-        # Load the image
+        # Create a container
+        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.add(self.box)
+
+        # Set up event box to capture clicks
+        event_box = Gtk.EventBox()
+        event_box.connect("button-press-event", self.on_click)
+        self.box.pack_start(event_box, True, True, 0)
+
+        # Try to load the image
         try:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file(image_path)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(self.image_path)
 
-            # Get screen size
-            screen = self.get_screen()
-            monitor = screen.get_monitor_at_window(screen.get_active_window())
-            geometry = screen.get_monitor_geometry(monitor)
+            # Get display size
+            display = Gdk.Display.get_default()
+            monitor = display.get_primary_monitor()
+            geometry = monitor.get_geometry()
 
-            # Scale image to fit screen
+            # Scale image
             width, height = geometry.width, geometry.height
             pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.BILINEAR)
 
             # Create image widget
             image = Gtk.Image.new_from_pixbuf(pixbuf)
-            self.add(image)
+            event_box.add(image)
 
         except Exception as e:
             print(f"Error loading image: {e}")
-            label = Gtk.Label(label="Error loading splash image")
-            self.add(label)
+            sys.exit(1)
+
+        # Save PID to file for later cleanup
+        with open('/tmp/splash-pid.txt', 'w') as f:
+            f.write(str(os.getpid()))
+
+    def on_click(self, widget, event):
+        """Exit when clicked anywhere"""
+        print("Splash screen clicked, exiting...")
+        self.cleanup()
+        Gtk.main_quit()
+
+    def cleanup(self):
+        """Remove PID file on exit"""
+        try:
+            if os.path.exists('/tmp/splash-pid.txt'):
+                os.remove('/tmp/splash-pid.txt')
+        except Exception as e:
+            print(f"Error cleaning up: {e}")
+
+    def _setup_css(self):
+        # Create CSS provider
+        css_provider = Gtk.CssProvider()
+        css = """
+        window {
+            background-color: #000000;
+        }
+        """
+        css_provider.load_from_data(bytes(css.encode()))
+
+        # Apply CSS to the application
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: splash-overlay.py IMAGE_PATH")
-        sys.exit(1)
+    # Get image path from arguments if provided
+    image_path = None
+    if len(sys.argv) > 1:
+        image_path = sys.argv[1]
 
-    image_path = sys.argv[1]
+    # Set up proper exit handling
     win = SplashWindow(image_path)
-    win.connect("destroy", Gtk.main_quit)
+    win.connect("destroy", lambda x: Gtk.main_quit())
+
+    # Handle Ctrl+C gracefully
+    def signal_handler(sig):
+        win.cleanup()
+        Gtk.main_quit()
+
+    # Show window and start main loop
     win.show_all()
-    Gtk.main()
+    try:
+        Gtk.main()
+    except KeyboardInterrupt:
+        win.cleanup()
+        sys.exit(0)
