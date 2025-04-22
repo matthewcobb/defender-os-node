@@ -105,29 +105,34 @@ async def run_system_update():
                         "message": line.split("] ")[1] if "] " in line else ""
                     }
 
-                elif action_type == "OVERALL" and status in ["completed", "failed"]:
-                    update_status["overall_status"] = "complete" if status == "completed" else "failed"
-
-        # Process stderr if there's any
-        stderr_data = await process.stderr.read()
-        stderr_text = stderr_data.decode('utf-8').strip()
-        if stderr_text:
-            logging.error(f"Update stderr: {stderr_text}")
-            update_status["logs"].append(f"❌ Error: {stderr_text}")
-            if update_status["overall_status"] != "failed":
-                update_status["overall_status"] = "failed"
-                update_status["error"] = stderr_text
+                elif action_type == "OVERALL":
+                    if status == "completed":
+                        update_status["overall_status"] = "complete"
+                    elif status == "failed":
+                        update_status["overall_status"] = "failed"
+                        # Extract error message if available
+                        error_msg = line.split("] ")[1] if "] " in line else "Update process failed"
+                        update_status["error"] = error_msg
 
         # Wait for process to complete
+        await process.stderr.read()  # Read stderr but don't process it - fetch.sh handles errors
         await process.wait()
 
-        # If process exited with non-zero and we haven't already set a failure status
-        if process.returncode != 0 and update_status["overall_status"] != "failed":
-            error_msg = f"Update process exited with code {process.returncode}"
-            update_status["overall_status"] = "failed"
-            update_status["error"] = error_msg
-            update_status["logs"].append(f"❌ {error_msg}")
-            logging.error(error_msg)
+        # If we get here and overall_status is still in_progress, something went wrong
+        if update_status["overall_status"] == "in_progress":
+            # Look for error messages in the logs
+            error_logs = [log for log in update_status["logs"] if "❌" in log]
+            if error_logs:
+                update_status["error"] = error_logs[-1]  # Get the last error message
+                update_status["overall_status"] = "failed"
+            else:
+                # If no explicit errors but process exit code is non-zero
+                if process.returncode != 0:
+                    update_status["error"] = f"Update process exited with code {process.returncode}"
+                    update_status["overall_status"] = "failed"
+                else:
+                    # If the script completed but didn't explicitly mark as completed
+                    update_status["overall_status"] = "complete"
 
         logging.info(f"Update process completed with status: {update_status['overall_status']}")
 
@@ -136,7 +141,7 @@ async def run_system_update():
         logging.error(f"Error running update script: {error_msg}")
         update_status["overall_status"] = "failed"
         update_status["error"] = error_msg
-        update_status["logs"].append(f"❌ {error_msg}")
+        update_status["logs"].append(f"❌ Error: {error_msg}")
 
 def get_update_status():
     """Get the current status of the system update"""

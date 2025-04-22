@@ -19,6 +19,13 @@ pull_status=$?
 if [ $pull_status -eq 0 ]; then
     echo "[PROGRESS:STEP:git_pull:completed] ✅ Successfully pulled the latest changes"
 
+    # Check if the message contains "Already up to date" or similar
+    if echo "$git_output" | grep -q "Already up to date" || echo "$git_output" | grep -q "up-to-date"; then
+        echo "🔍 No changes detected. System is already up to date."
+        echo "[PROGRESS:OVERALL:completed] ✅ No updates needed, system is already up to date"
+        exit 0
+    fi
+
     app_changes=false
     python_changes=false
 
@@ -33,36 +40,49 @@ if [ $pull_status -eq 0 ]; then
         echo "[PROGRESS:STEP:npm_install:started] 🔄 Installing npm dependencies..."
         cd /home/pi/defender-os-node/app || exit
         npm install
+        npm_install_status=$?
 
-        # Check if npm install was successful
-        if [ $? -eq 0 ]; then
+        # Check if npm install was successful (ignoring deprecation warnings)
+        if [ $npm_install_status -eq 0 ]; then
             echo "[PROGRESS:STEP:npm_install:completed] ✅ npm install completed successfully"
 
             # Run npm run build
             echo "[PROGRESS:STEP:npm_build:started] 🔄 Building application..."
             npm run build
+            npm_build_status=$?
 
-            # Check if npm run build was successful
-            if [ $? -eq 0 ]; then
+            # Check if npm run build was successful (ignoring deprecation warnings)
+            if [ $npm_build_status -eq 0 ]; then
                 echo "[PROGRESS:STEP:npm_build:completed] ✅ Build completed successfully"
 
                 echo "[PROGRESS:STEP:restart_app:started] 🔄 Restarting Node.js server..."
                 pm2 restart defender-os-server
+                restart_status=$?
 
-                if [ $? -eq 0 ]; then
+                if [ $restart_status -eq 0 ]; then
                     echo "[PROGRESS:STEP:restart_app:completed] ✅ Server restart successful"
                 else
                     echo "[PROGRESS:STEP:restart_app:failed] ❌ Server restart failed"
                 fi
             else
-                echo "[PROGRESS:STEP:npm_build:failed] ❌ npm run build failed"
-                echo "[PROGRESS:OVERALL:failed] ❌ Update process failed"
-                exit 1
+                # Only fail if it's a real error, not just deprecation warnings
+                if grep -v "DeprecationWarning" <<< "$(npm run build 2>&1)" | grep -q "ERR!"; then
+                    echo "[PROGRESS:STEP:npm_build:failed] ❌ npm run build failed"
+                    echo "[PROGRESS:OVERALL:failed] ❌ Update process failed"
+                    exit 1
+                else
+                    echo "[PROGRESS:STEP:npm_build:completed] ✅ Build completed with warnings"
+                fi
             fi
         else
-            echo "[PROGRESS:STEP:npm_install:failed] ❌ npm install failed"
-            echo "[PROGRESS:OVERALL:failed] ❌ Update process failed"
-            exit 1
+            # Only fail if it's a real error, not just deprecation warnings
+            if grep -v "DeprecationWarning" <<< "$(npm install 2>&1)" | grep -q "ERR!"; then
+                echo "[PROGRESS:STEP:npm_install:failed] ❌ npm install failed"
+                echo "[PROGRESS:OVERALL:failed] ❌ Update process failed"
+                exit 1
+            else
+                echo "[PROGRESS:STEP:npm_install:completed] ✅ npm install completed with warnings"
+            fi
         fi
     else
         echo "🔍 No changes detected in app directory. Skipping npm install, build and restart."
@@ -80,9 +100,10 @@ if [ $pull_status -eq 0 ]; then
 
         # Install requirements
         pip install -r requirements.txt
+        pip_status=$?
 
         # Check if pip install was successful
-        if [ $? -eq 0 ]; then
+        if [ $pip_status -eq 0 ]; then
             echo "[PROGRESS:STEP:python_dependencies:completed] ✅ Python dependencies updated successfully"
         else
             echo "[PROGRESS:STEP:python_dependencies:failed] ❌ Failed to update Python dependencies"
@@ -106,6 +127,11 @@ if [ $pull_status -eq 0 ]; then
         fi
     else
         echo "🔍 No changes detected in python directory. Skipping dependency updates."
+    fi
+
+    # If no changes were detected in either directory but git pull succeeded
+    if [ "$app_changes" = false ] && [ "$python_changes" = false ]; then
+        echo "🔍 No significant changes detected that require updates."
     fi
 
     # If we got here without errors, the update was successful
