@@ -6,3 +6,4 @@ bleak
 
 # Platform-specific dependencies
 gpiozero; platform_system == "Linux"
+lgpio; platform_system == "Linux"
