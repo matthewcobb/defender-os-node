@@ -5,5 +5,4 @@ quart
 bleak
 
 # Platform-specific dependencies
-gpiod; platform_system == "Linux"
 gpiozero; platform_system == "Linux"

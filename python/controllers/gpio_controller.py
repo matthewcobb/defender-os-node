@@ -8,15 +8,16 @@ import time
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger('gpio_controller')
 
-# Set to False for production on Raspberry Pi 5
-DEBUG_GPIO = False
+# Use fallback if GPIO initialization fails
+USE_FALLBACK = False
 
 try:
-    import gpiod
-    log.info("Using gpiod module for Raspberry Pi 5")
+    from gpiozero import DigitalInputDevice
+    log.info("Using gpiozero module for Raspberry Pi")
 except ImportError as e:
-    log.error(f"Failed to import gpiod: {e}")
-    raise ImportError("GPIO module is required for Raspberry Pi operation")
+    log.error(f"Failed to import gpiozero: {e}")
+    USE_FALLBACK = True
+    log.warning("Using fallback mode - no GPIO functionality")
 
 gpio_bp = Blueprint('gpio', __name__, url_prefix='/gpio')
 
@@ -27,17 +28,22 @@ REVERSE_PIN = 7  # GPIO pin number
 active_connections = set()
 
 # GPIO setup
-chip = None
-reverse_line = None
+reverse_sensor = None
 
-try:
-    chip = gpiod.Chip('gpiochip0')  # Default chip on Raspberry Pi
-    reverse_line = chip.get_line(REVERSE_PIN)
-    reverse_line.request(consumer="defender-os", type=gpiod.LINE_REQ_DIR_IN, flags=gpiod.LINE_REQ_FLAG_ACTIVE_LOW)
-    log.info(f"GPIO reverse sensor initialized on pin {REVERSE_PIN}")
-except Exception as e:
-    log.error(f"Failed to initialize GPIO reverse sensor: {e}")
-    raise RuntimeError(f"Failed to initialize GPIO: {e}")
+# Try to initialize GPIO only if we have the module
+if not USE_FALLBACK:
+    try:
+        # gpiozero automatically handles the chip detection
+        reverse_sensor = DigitalInputDevice(
+            REVERSE_PIN,
+            pull_up=False,  # Use external pull-up/down resistors
+            active_state=False  # Active low (pulled down when active)
+        )
+        log.info(f"GPIO reverse sensor initialized on pin {REVERSE_PIN}")
+    except Exception as e:
+        log.error(f"Failed to initialize GPIO: {e}")
+        USE_FALLBACK = True
+        log.warning("Using fallback mode - no GPIO functionality")
 
 # State tracking
 is_reversing = False
@@ -63,7 +69,10 @@ async def broadcast_message(message_data):
 
 def read_gpio_state():
     """Read the current GPIO state"""
-    return bool(reverse_line.get_value())
+    if USE_FALLBACK:
+        # In fallback mode, always return False (not reversing)
+        return False
+    return reverse_sensor.is_active
 
 async def monitor_reverse_light():
     """Background task to monitor the reverse light status and notify clients"""
@@ -159,5 +168,6 @@ async def gpio_status():
     """Get current status of GPIO pins"""
     return jsonify({
         "is_reversing": is_reversing,
-        "reverse_pin": REVERSE_PIN
+        "reverse_pin": REVERSE_PIN,
+        "mode": "fallback" if USE_FALLBACK else "hardware"
     })
