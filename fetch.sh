@@ -73,8 +73,16 @@ if [ $pull_status -eq 0 ]; then
         deactivate
         echo "✨ Restarting server"
         sudo systemctl restart defender-os-utilities-server.service
-        sudo systemctl status defender-os-utilities-server.service
-        echo "✅ Server restarted"
+
+        # Check if restart was successful
+        if sudo systemctl is-active --quiet defender-os-utilities-server.service; then
+            echo "✅ Server restart successful"
+            sudo systemctl status defender-os-utilities-server.service
+        else
+            echo "🛑 Server restart failed"
+            sudo systemctl status defender-os-utilities-server.service
+            exit 1
+        fi
     else
         echo "🔍 No changes detected in python directory. Skipping dependency updates."
     fi
