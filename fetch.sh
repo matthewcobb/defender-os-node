@@ -25,7 +25,7 @@ if [ $pull_status -eq 0 ]; then
 
         # Run npm install
         echo "Running npm install..."
-        cd app || exit
+        cd /home/pi/defender-os-node/app || exit
         npm install
 
         # Check if npm install was successful
@@ -57,7 +57,7 @@ if [ $pull_status -eq 0 ]; then
 
         # Navigate to python directory and update dependencies
         echo "Updating Python dependencies..."
-        cd python || exit
+        cd /home/pi/defender-os-node/python || exit
         source env/bin/activate
 
         # Install requirements
