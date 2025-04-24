@@ -38,6 +38,12 @@ class SplashWindow(Gtk.Window):
         self.fullscreen()
         self.set_keep_above(True)
 
+        # Set as dialog window type for higher priority
+        self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+
+        # Set additional window attributes for keeping on top
+        self.set_skip_taskbar_hint(True)
+        self.set_skip_pager_hint(True)
         # Set black background using CSS
         self._setup_css()
 
