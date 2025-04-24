@@ -16,39 +16,29 @@ echo -e "${GREEN}Setting up Raspberry Pi OS Lite with Wayfire and Chrome kiosk..
 # Install dependencies
 echo -e "${BLUE}Installing Wayfire dependencies...${RESET}"
 sudo apt update
-# Add bullseye-backports to apt sources if needed for wayfire
-echo "deb http://archive.raspberrypi.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/raspi.list
-sudo apt update
-# Install Wayfire and dependencies
 sudo apt install -y wayfire xwayland wl-clipboard
-# Additional packages
 sudo apt install -y chromium-browser plymouth plymouth-themes libudev-dev curl python3-pip python3-venv gpiozero \
      python3-gi python3-gi-cairo gir1.2-gtk-3.0 fonts-noto-color-emoji python3-rpi-lgpio
-
-# Configure Wayfire
-echo -e "${BLUE}Creating Wayfire autostart...${RESET}"
-mkdir -p ~/.config
-cp scripts-lite/wayfire/wayfire.ini ~/.config/wayfire.ini
-
-# Create Wayfire autostart
-mkdir -p ~/.config/wayfire
-cp scripts-lite/wayfire/autostart ~/.config/wayfire/autostart
-# chmod +x ~/.config/wayfire/autostart (commited to git)
-
-# Setup Wayfire hide-cursor plugin
-sudo mkdir -p /usr/lib/aarch64-linux-gnu/wayfire
-sudo mkdir -p /usr/share/wayfire/metadata
-sudo cp scripts-lite/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so /usr/lib/aarch64-linux-gnu/wayfire/
-sudo cp scripts-lite/wayfire/usr/share/wayfire/metadata/hide-cursor.xml /usr/share/wayfire/metadata/
 
 # Setup auto-login
 echo -e "${BLUE}Setting auto-login...${RESET}"
 sudo raspi-config nonint do_boot_behaviour B2
 
-# Update and install dependencies
-echo -e "${BLUE}Updating and installing dependencies...${RESET}"
-sudo apt install -y chromium-browser libudev-dev curl python3-pip python3-venv plymouth gpiozero \
-     python3-gi python3-gi-cairo gir1.2-gtk-3.0 fonts-noto-color-emoji python3-rpi-lgpio
+# Configure Wayfire
+echo -e "${BLUE}Creating Wayfire autostart...${RESET}"
+mkdir -p ~/.config
+cp "{$CLONE_DIR}/scripts-lite/wayfire/wayfire.ini" ~/.config/wayfire.ini
+
+# Create Wayfire autostart
+mkdir -p ~/.config/wayfire
+cp "{$CLONE_DIR}/scripts-lite/wayfire/autostart" ~/.config/wayfire/autostart
+# chmod +x ~/.config/wayfire/autostart (commited to git)
+
+# Setup Wayfire hide-cursor plugin
+sudo mkdir -p /usr/lib/aarch64-linux-gnu/wayfire
+sudo mkdir -p /usr/share/wayfire/metadata
+sudo cp "{$CLONE_DIR}/scripts-lite/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so" /usr/lib/aarch64-linux-gnu/wayfire/
+sudo cp "{$CLONE_DIR}/scripts-lite/wayfire/usr/share/wayfire/metadata/hide-cursor.xml" /usr/share/wayfire/metadata/
 
 # Install NVM (Node Version Manager)
 echo -e "${BLUE}Installing NVM...${RESET}"
@@ -150,14 +140,6 @@ sudo cp "$CLONE_DIR/scripts/.bash_profile" "/home/pi/.bash_profile"
 # plymouth theme
 sudo cp -r "$CLONE_DIR/boot/circle_hud" /usr/share/plymouth/themes/
 sudo plymouth-set-default-theme -R circle_hud
-
-# Add display rotation settings
-echo -e "${BLUE}Adding display rotation settings to config.txt...${RESET}"
-sudo tee -a /boot/firmware/config.txt << EOF
-
-# Display rotation options
-display_rotate=2
-EOF
 
 echo -e "${GREEN}Setup complete! ${RESET}"
 
