@@ -20,7 +20,7 @@ import { useRouter } from 'vue-router';
 import CarPlayDisplay from './components/CarPlayDisplay.vue';
 import DefenderOS from './components/DefenderOS.vue';
 import ToastMessage from './components/ToastMessage.vue';
-import { apiService } from './features/system/services/api';
+// import { apiService } from './features/system/services/api';
 import { useToast } from './features';
 import { initGpioService, disconnect } from './features/system/services/gpio';
 
