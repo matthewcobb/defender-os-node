@@ -2,6 +2,7 @@
   <FullScreenDisplay
     ref="container"
     :startFullscreen="startFullscreen"
+    :padding="false"
     @close="onClose"
   >
     <div class="reverse-camera-content">

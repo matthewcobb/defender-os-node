@@ -1,11 +1,11 @@
 <template>
-  <div class="panel leisure" :class="{ 'charging': isCharging, 'clickable': !error }">
+  <div class="panel leisure" :class="{ 'charging': isCharging }">
     <div class="panel-header">
       <h2>Battery</h2>
       <BatteryMedium class="leisure" :size="32" />
     </div>
     <div v-if="error" class="error-state">
-      <p>Connecting...</p>
+      <p class="small">Connecting...</p>
     </div>
     <div v-else>
       <LevelIndicator
@@ -81,19 +81,5 @@ const isCharging = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.panel.leisure {
-  &.clickable {
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
 
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  }
-}
 </style>

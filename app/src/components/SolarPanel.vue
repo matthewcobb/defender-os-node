@@ -1,11 +1,11 @@
 <template>
-  <div class="panel solar" :class="{ 'clickable': !error }">
+  <div class="panel solar">
     <div class="panel-header">
       <h2>Solar</h2>
       <Sun class="solar" :size="32" />
     </div>
     <div v-if="error" class="error-state">
-      <p>Connecting...</p>
+      <p class="small">Connecting...</p>
     </div>
     <div v-else>
       <LevelIndicator :percentage="solarPowerPercentage" type="solar">
@@ -65,20 +65,4 @@ const solarPowerPercentage = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-// Component-specific styles only
-.panel.solar {
-  &.clickable {
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  }
-}
 </style>

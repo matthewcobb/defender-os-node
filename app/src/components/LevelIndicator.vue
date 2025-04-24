@@ -56,7 +56,7 @@ const getColorClass = computed(() => {
 .level-container {
   outline: 2px solid var(--panel-bg);
   background: var(--panel-bg);
-  border-radius: 1rem;
+  border-radius: 50cqh;
   width: 100%;
   margin-bottom: 0.75rem;
   position: relative;
@@ -86,7 +86,7 @@ const getColorClass = computed(() => {
   font-size: 1.5rem;
   font-weight: 500;
   box-sizing: border-box;
-  border-radius: 1rem;
+  border-radius: 50cqh;
   overflow: visible;
   animation: fill 1.5s ease-in-out;
   animation-fill-mode: forwards;

@@ -12,6 +12,7 @@
     "lucide-vue-next": "^0.501.0",
     "node-carplay": "github:rhysmorgan134/node-CarPlay",
     "pcm-ringbuf-player": "github:rhysmorgan134/pcm-ringbuf-player#main",
+    "pinia": "^3.0.2",
     "typescript": "^5.6.2",
     "vue": "^3.4.21",
     "vue-router": "^4.5.0"
