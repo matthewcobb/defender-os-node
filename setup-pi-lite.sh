@@ -17,7 +17,7 @@ echo -e "${GREEN}Setting up Raspberry Pi OS Lite with Wayfire and Chrome kiosk..
 echo -e "${BLUE}Installing Wayfire dependencies...${RESET}"
 sudo apt update
 sudo apt install -y wayfire xwayland wl-clipboard
-sudo apt install -y chromium-browser plymouth plymouth-themes libudev-dev curl python3-pip python3-venv gpiozero \
+sudo apt install -y chromium-browser plymouth plymouth-themes libudev-dev curl python3-pip python3-venv python3-gpiozero \
      python3-gi python3-gi-cairo gir1.2-gtk-3.0 fonts-noto-color-emoji python3-rpi-lgpio
 
 # Setup auto-login
