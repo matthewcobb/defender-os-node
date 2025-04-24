@@ -16,6 +16,7 @@ FALLBACK_HEIGHT = 600
 
 class SplashWindow(Gtk.Window):
     def __init__(self, image_path=None):
+        # Important: Use exact title "Splash" to match labwc rule
         Gtk.Window.__init__(self, title="Splash")
 
         # Check if either image exists before proceeding
@@ -38,12 +39,13 @@ class SplashWindow(Gtk.Window):
         self.fullscreen()
         self.set_keep_above(True)
 
-        # Set as dialog window type for higher priority
-        self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+        # Set as splash window type to match labwc rule
+        self.set_type_hint(Gdk.WindowTypeHint.SPLASHSCREEN)
 
         # Set additional window attributes for keeping on top
         self.set_skip_taskbar_hint(True)
         self.set_skip_pager_hint(True)
+
         # Set black background using CSS
         self._setup_css()
 

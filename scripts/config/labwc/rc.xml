@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <openbox_config xmlns="http://openbox.org/3.4/rc">
   <theme>
     <font place="ActiveWindow"><name>PibotoLt</name><size>12</size><weight>Normal</weight><slant>Normal</slant></font>
@@ -12,6 +13,22 @@
       <solid color="#000000"/>
     </background>
   </desktops>
+
+  <windowRules>
+    <!-- Special rule for the splash screen using type "splash" -->
+    <windowRule identifier="*" title="Splash" type="splash" fixedPosition="yes" skipTaskbar="yes">
+      <action name="Focus"/>
+      <action name="Raise"/>
+    </windowRule>
+
+    <!-- Browser rules with multiple potential identifiers -->
+    <windowRule identifier="chromium-browser" ignoreFocusRequest="yes" />
+    <windowRule identifier="chromium" ignoreFocusRequest="yes" />
+    <windowRule identifier="Google-chrome" ignoreFocusRequest="yes" />
+    <windowRule identifier="chrome" ignoreFocusRequest="yes" />
+    <windowRule title="*Chromium*" ignoreFocusRequest="yes" />
+    <windowRule title="*Chrome*" ignoreFocusRequest="yes" />
+  </windowRules>
 
   <libinput>
     <device category="default"><leftHanded>no</leftHanded></device>
