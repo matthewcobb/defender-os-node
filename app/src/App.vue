@@ -20,7 +20,7 @@ import { useRouter } from 'vue-router';
 import CarPlayDisplay from './components/CarPlayDisplay.vue';
 import DefenderOS from './components/DefenderOS.vue';
 import ToastMessage from './components/ToastMessage.vue';
-// import { apiService } from './features/system/services/api';
+import { apiService } from './features/system/services/api';
 import { useToast } from './features';
 import { initGpioService, disconnect } from './features/system/services/gpio';
 
@@ -49,19 +49,19 @@ onMounted(async () => {
   console.log('Container dimensions:', width.value, height.value);
 
   // Remove the splash screen once the app is fully loaded
-  // try {
-  //   const result = await apiService.removeSplashScreen();
-  //   if (result.status === 'success') {
-  //     const { success } = useToast();
-  //     success('App ready');
-  //   } else if (result.status === 'warning') {
-  //     console.log('Splash screen was already closed');
-  //   } else {
-  //     console.error('Failed to remove splash screen:', result.message);
-  //   }
-  // } catch (error) {
-  //   console.error('Failed to remove splash screen:', error);
-  // }
+  try {
+    const result = await apiService.removeSplashScreen();
+    if (result.status === 'success') {
+      const { success } = useToast();
+      success('App ready');
+    } else if (result.status === 'warning') {
+      console.log('Splash screen was already closed');
+    } else {
+      console.error('Failed to remove splash screen:', result.message);
+    }
+  } catch (error) {
+    console.error('Failed to remove splash screen:', error);
+  }
 });
 
 onUnmounted(() => {
