@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Chromium Kiosk
+Exec=bash -c "sleep 5 && export WAYLAND_DISPLAY=wayland-1 && chromium-browser http://localhost:3000 --ozone-platform=wayland --kiosk --no-sandbox --disable-web-security --disable-webusb-security --disable-extensions --autoplay-policy=no-user-gesture-required --window-size=1600,600 --start-fullscreen --default-background-color=000000"
+Terminal=false
+X-GNOME-Autostart-enabled=true
+Hidden=false

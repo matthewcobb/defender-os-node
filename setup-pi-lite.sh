@@ -30,15 +30,21 @@ mkdir -p ~/.config
 cp "$CLONE_DIR/scripts-lite/wayfire/wayfire.ini" ~/.config/wayfire.ini
 
 # Create Wayfire autostart
-mkdir -p ~/.config/wayfire
-cp "$CLONE_DIR/scripts-lite/wayfire/autostart" ~/.config/wayfire/autostart
-# chmod +x ~/.config/wayfire/autostart (commited to git)
+echo -e "${BLUE}Copying defender-os.desktop to autostart...${RESET}"
+sudo mkdir -p ~/.config/autostart
+sudo cp "$CLONE_DIR/scripts-lite/defender-os.desktop" ~/.config/autostart/defender-os.desktop
+chmod +x ~/.config/autostart/defender-os.desktop
 
 # Setup Wayfire hide-cursor plugin
 sudo mkdir -p /usr/lib/aarch64-linux-gnu/wayfire
 sudo mkdir -p /usr/share/wayfire/metadata
 sudo cp "$CLONE_DIR/scripts-lite/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so" /usr/lib/aarch64-linux-gnu/wayfire/
 sudo cp "$CLONE_DIR/scripts-lite/wayfire/usr/share/wayfire/metadata/hide-cursor.xml" /usr/share/wayfire/metadata/
+
+# Setup bash profile for Wayfire autostart
+echo -e "${BLUE}Setting up bash profile for Wayfire autostart...${RESET}"
+cp "$CLONE_DIR/scripts-lite/bash-profile" ~/.bash_profile
+chmod +x ~/.bash_profile
 
 # Install NVM (Node Version Manager)
 echo -e "${BLUE}Installing NVM...${RESET}"
@@ -140,6 +146,20 @@ sudo cp "$CLONE_DIR/scripts/.bash_profile" "/home/pi/.bash_profile"
 # plymouth theme
 sudo cp -r "$CLONE_DIR/boot/circle_hud" /usr/share/plymouth/themes/
 sudo plymouth-set-default-theme -R circle_hud
+
+# Configure audio
+echo -e "${BLUE}Configuring audio...${RESET}"
+cat <<EOF > /etc/asound.conf
+pcm.!default {
+    type hw
+    card 2
+}
+
+ctl.!default {
+    type hw
+    card 2
+}
+EOF
 
 echo -e "${GREEN}Setup complete! ${RESET}"
 

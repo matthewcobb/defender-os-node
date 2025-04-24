@@ -5,4 +5,5 @@ export XDG_SESSION_TYPE=wayland
 export GDK_BACKEND=wayland
 export QT_QPA_PLATFORM=wayland
 export NO_AT_BRIDGE=1
+
 chromium-browser http://localhost:3000 --ozone-platform=wayland --kiosk --no-sandbox --disable-web-security --disable-webusb-security --disable-extensions --autoplay-policy=no-user-gesture-required --window-size=1600,600 --start-fullscreen --default-background-color=000000
