@@ -1,6 +1,6 @@
 # Boot to Wayfire
 if [ -z "$WAYLAND_DISPLAY" ] && [ $(tty) = "/dev/tty1" ]; then
-  exec wayfire
+  exec wayfire --rotate=180
 fi
 
 # NVM Config

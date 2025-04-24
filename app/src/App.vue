@@ -30,10 +30,10 @@ const height = ref(0);
 
 // Use the global toast system
 const { state: toastState, hideToast } = useToast();
-
 const updateToastVisibility = (show: boolean) => {
   if (!show) hideToast();
 };
+
 // Initialize the GPIO service
 const router = useRouter();
 initGpioService(router);
@@ -49,19 +49,19 @@ onMounted(async () => {
   console.log('Container dimensions:', width.value, height.value);
 
   // Remove the splash screen once the app is fully loaded
-  try {
-    const result = await apiService.removeSplashScreen();
-    if (result.status === 'success') {
-      const { success } = useToast();
-      success('App ready');
-    } else if (result.status === 'warning') {
-      console.log('Splash screen was already closed');
-    } else {
-      console.error('Failed to remove splash screen:', result.message);
-    }
-  } catch (error) {
-    console.error('Failed to remove splash screen:', error);
-  }
+  // try {
+  //   const result = await apiService.removeSplashScreen();
+  //   if (result.status === 'success') {
+  //     const { success } = useToast();
+  //     success('App ready');
+  //   } else if (result.status === 'warning') {
+  //     console.log('Splash screen was already closed');
+  //   } else {
+  //     console.error('Failed to remove splash screen:', result.message);
+  //   }
+  // } catch (error) {
+  //   console.error('Failed to remove splash screen:', error);
+  // }
 });
 
 onUnmounted(() => {
