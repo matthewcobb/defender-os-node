@@ -11,15 +11,36 @@ BLUE='\033[0;34m'
 RESET='\033[0m'  # Reset color to default
 CLONE_DIR="/home/pi/defender-os-node"
 
+echo -e "${GREEN}Setting up Raspberry Pi OS Lite with Wayfire and Chrome kiosk...${RESET}"
+
+# Install dependencies
+sudo apt update
+sudo apt install -y wayfire wlroots wayfire-plugin-extra wayvnc wl-clipboard wev xwayland
+
+# Configure Wayfire
+echo -e "${BLUE}Creating Wayfire autostart...${RESET}"
+mkdir -p ~/.config
+cp /home/pi/defender-os-node/scripts-lite/wayfire/wayfire.ini ~/.config/wayfire.ini
+
+# Create Wayfire autostart
+mkdir -p ~/.config/wayfire
+cp /home/pi/defender-os-node/scripts-lite/wayfire/autostart ~/.config/wayfire/autostart
+# chmod +x ~/.config/wayfire/autostart (commited to git)
+
+# Setup Wayfire hide-cursor plugin
+sudo mkdir -p /usr/lib/aarch64-linux-gnu/wayfire
+sudo mkdir -p /usr/share/wayfire/metadata
+sudo cp scripts-lite/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so /usr/lib/aarch64-linux-gnu/wayfire/
+sudo cp scripts-lite/wayfire/usr/share/wayfire/metadata/hide-cursor.xml /usr/share/wayfire/metadata/
+
+# Setup auto-login
+echo -e "${BLUE}Setting auto-login...${RESET}"
+sudo raspi-config nonint do_boot_behaviour B2
+
 # Update and install dependencies
 echo -e "${BLUE}Updating and installing dependencies...${RESET}"
-sudo apt update
 sudo apt install -y chromium-browser libudev-dev curl python3-pip python3-venv plymouth gpiozero \
      python3-gi python3-gi-cairo gir1.2-gtk-3.0 fonts-noto-color-emoji python3-rpi-lgpio
-# # Install Wayfire Plugins
-# sudo cp scripts/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so /usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so
-# sudo cp scripts/wayfire/usr/share/wayfire/metadata/hide-cursor.xml /usr/share/wayfire/metadata/hide-cursor.xml
-# sudo cp scripts/wayfire/wayfire.ini ~/.config/wayfire.ini
 
 # Install NVM (Node Version Manager)
 echo -e "${BLUE}Installing NVM...${RESET}"
@@ -53,15 +74,6 @@ npm install -g pm2  # Install pm2 globally using npm
 echo -e "${YELLOW}Enabling pm2 service on boot...${RESET}"
 VERSION=$(node -v)
 sudo env PATH=$PATH:/home/pi/.nvm/versions/node/$VERSION/bin /home/pi/.nvm/versions/node/$VERSION/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
-
-# Ensure NVM is sourced for pm2 in systemd startup
-# echo -e "${YELLOW}Configuring pm2 to use NVM...${RESET}"
-# Add NVM sourcing to pm2 startup command
-# sudo sed -i 's/ExecStart=\/usr\/bin\/node/ExecStart=\/bin\/bash -c "source \/home\/pi\/.bashrc && pm2 start"/g' /etc/systemd/system/pm2-pi.service
-
-# Disable the desktop environment (no graphical environment until Chromium starts)
-# echo -e "${YELLOW}Disabling desktop environment...${RESET}"
-# sudo systemctl set-default multi-user.target
 
 # Navigate to the app directory and run npm install to install dependencies
 echo -e "${BLUE}Installing Node.js dependencies in the app directory...${RESET}"
@@ -106,22 +118,6 @@ echo -e "${YELLOW}Enabling and starting defender-os-utilities-server service...$
 sudo systemctl enable defender-os-utilities-server.service
 sudo systemctl start defender-os-utilities-server.service
 
-# Copy defender-os.desktop for autostart
-echo -e "${BLUE}Copying defender-os.desktop to autostart...${RESET}"
-sudo mkdir -p ~/.config/autostart
-sudo cp "$CLONE_DIR/scripts/defender-os.desktop" ~/.config/autostart/defender-os.desktop
-
-# Setup labwc autostart script
-echo -e "${BLUE}Setting up labwc autostart for splash screen...${RESET}"
-mkdir -p ~/.config/labwc
-cp "$CLONE_DIR/scripts/labwc-autostart.sh" ~/.config/labwc/autostart
-chmod +x ~/.config/labwc/autostart
-
-# Make splash scripts executable
-echo -e "${BLUE}Setting up splash scripts...${RESET}"
-chmod +x "$CLONE_DIR/scripts/splash-overlay.py"
-chmod +x "$CLONE_DIR/scripts/remove-splash.sh"
-
 # Add smart shutdown service
 echo -e "${BLUE}Adding smart shutdown service...${RESET}"
 sudo cp "$CLONE_DIR/scripts/carpihat-shutdown.service" /etc/systemd/system/carpihat-shutdown.service
@@ -161,7 +157,10 @@ echo "hdmi_cvt 1600 600 60 6 0 0 0"
 echo "# Latch power"
 echo "dtoverlay=gpio-poweroff,gpiopin=25,active_low"
 echo "usb_max_current_enable=1" # Enable USB max current, pi5 limits if not powered by usb-c
+
 # Add carPiHat init script
 echo -e "${BLUE}Adding carPiHat init script...${RESET}"
 echo "You still need to enable the service manually, run:"
 echo "sudo systemctl start carpihat-shutdown.service"
+
+echo "Setup complete! Reboot to apply changes."
