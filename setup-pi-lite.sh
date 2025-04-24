@@ -14,17 +14,25 @@ CLONE_DIR="/home/pi/defender-os-node"
 echo -e "${GREEN}Setting up Raspberry Pi OS Lite with Wayfire and Chrome kiosk...${RESET}"
 
 # Install dependencies
+echo -e "${BLUE}Installing Wayfire dependencies...${RESET}"
 sudo apt update
-sudo apt install -y wayfire wlroots wayfire-plugin-extra wayvnc wl-clipboard wev xwayland
+# Add bullseye-backports to apt sources if needed for wayfire
+echo "deb http://archive.raspberrypi.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/raspi.list
+sudo apt update
+# Install Wayfire and dependencies
+sudo apt install -y wayfire xwayland wl-clipboard
+# Additional packages
+sudo apt install -y chromium-browser plymouth plymouth-themes libudev-dev curl python3-pip python3-venv gpiozero \
+     python3-gi python3-gi-cairo gir1.2-gtk-3.0 fonts-noto-color-emoji python3-rpi-lgpio
 
 # Configure Wayfire
 echo -e "${BLUE}Creating Wayfire autostart...${RESET}"
 mkdir -p ~/.config
-cp /home/pi/defender-os-node/scripts-lite/wayfire/wayfire.ini ~/.config/wayfire.ini
+cp scripts-lite/wayfire/wayfire.ini ~/.config/wayfire.ini
 
 # Create Wayfire autostart
 mkdir -p ~/.config/wayfire
-cp /home/pi/defender-os-node/scripts-lite/wayfire/autostart ~/.config/wayfire/autostart
+cp scripts-lite/wayfire/autostart ~/.config/wayfire/autostart
 # chmod +x ~/.config/wayfire/autostart (commited to git)
 
 # Setup Wayfire hide-cursor plugin
@@ -143,6 +151,14 @@ sudo cp "$CLONE_DIR/scripts/.bash_profile" "/home/pi/.bash_profile"
 sudo cp -r "$CLONE_DIR/boot/circle_hud" /usr/share/plymouth/themes/
 sudo plymouth-set-default-theme -R circle_hud
 
+# Add display rotation settings
+echo -e "${BLUE}Adding display rotation settings to config.txt...${RESET}"
+sudo tee -a /boot/firmware/config.txt << EOF
+
+# Display rotation options
+display_rotate=2
+EOF
+
 echo -e "${GREEN}Setup complete! ${RESET}"
 
 echo -e "${YELLOW}Configre boot config...${RESET}"
@@ -154,6 +170,7 @@ echo "# HDMI settings..."
 echo "hdmi_group=2"
 echo "hdmi_mode=87"
 echo "hdmi_cvt 1600 600 60 6 0 0 0"
+echo "display_rotate=2"
 echo "# Latch power"
 echo "dtoverlay=gpio-poweroff,gpiopin=25,active_low"
 echo "usb_max_current_enable=1" # Enable USB max current, pi5 limits if not powered by usb-c
