@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import AboutView from '../views/AboutView.vue'
 import ReverseView from '../views/ReverseView.vue'
+import BatteryFullView from '../views/BatteryFullView.vue'
+import SolarFullView from '../views/SolarFullView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -30,6 +32,16 @@ const router = createRouter({
       path: '/reverse',
       name: 'reverse',
       component: ReverseView
+    },
+    {
+      path: '/battery',
+      name: 'battery',
+      component: BatteryFullView
+    },
+    {
+      path: '/solar',
+      name: 'solar',
+      component: SolarFullView
     }
   ]
 })

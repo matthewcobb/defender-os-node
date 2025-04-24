@@ -1,5 +1,5 @@
 <template>
-  <div class="panel leisure" :class="{ 'charging': isCharging }">
+  <div class="panel leisure" :class="{ 'charging': isCharging, 'clickable': !error }">
     <div class="panel-header">
       <h2>Battery</h2>
       <BatteryMedium class="leisure" :size="32" />
@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { BatteryMedium, Gauge, ArrowRight, Thermometer } from 'lucide-vue-next';
+import { BatteryMedium, Gauge, ArrowRight } from 'lucide-vue-next';
 import LevelIndicator from './LevelIndicator.vue';
 
 const props = defineProps({
@@ -78,25 +78,22 @@ const batteryPercentage = computed(() => {
 const isCharging = computed(() => {
   return props.batteryData?.current > 0;
 });
-
-const averageTemperature = computed(() => {
-  if (!props.batteryData) return '0';
-
-  const temps = [];
-  for (let i = 0; i < (props.batteryData.sensor_count || 0); i++) {
-    const temp = props.batteryData[`temperature_${i}`];
-    if (temp !== undefined) {
-      temps.push(parseFloat(temp));
-    }
-  }
-
-  if (temps.length === 0) return '0';
-
-  const avg = temps.reduce((sum, temp) => sum + temp, 0) / temps.length;
-  return avg.toFixed(1);
-});
 </script>
 
 <style lang="scss" scoped>
+.panel.leisure {
+  &.clickable {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
 
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
 </style>

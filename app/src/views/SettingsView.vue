@@ -237,6 +237,8 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .settings-view {
+  display: grid;
+  gap: 0.5rem;
 }
 
 .setting-item {

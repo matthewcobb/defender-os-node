@@ -1,13 +1,15 @@
 <template>
   <div class="home-view">
-    <div class="battery-status" :class="{ 'disconnected': error }" @click="handleErrorClick">
+    <div class="battery-status" :class="{ 'disconnected': error }">
       <LeisureBatteryPanel
         :batteryData="batteryData"
         :error="error"
+        @click="navigateToBattery"
       />
       <SolarPanel
         :solarData="solarData"
         :error="error"
+        @click="navigateToSolar"
       />
     </div>
   </div>
@@ -15,17 +17,64 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { apiService } from '../features/system/services/api';
 import SolarPanel from '../components/SolarPanel.vue';
 import LeisureBatteryPanel from '../components/LeisureBatteryPanel.vue';
 import { useToast } from '../features';
 
+// Define interfaces for our data
+interface SolarData {
+  function?: string;
+  model?: string;
+  device_id?: number;
+  battery_percentage?: number;
+  battery_voltage?: number;
+  battery_current?: number;
+  battery_temperature?: number;
+  controller_temperature?: number;
+  load_status?: string;
+  load_voltage?: number;
+  load_current?: number;
+  load_power?: number;
+  pv_voltage?: number;
+  pv_current?: number;
+  pv_power?: number;
+  max_charging_power_today?: number;
+  max_discharging_power_today?: number;
+  charging_amp_hours_today?: number;
+  discharging_amp_hours_today?: number;
+  power_generation_today?: number;
+  power_consumption_today?: number;
+  power_generation_total?: number;
+  charging_status?: string;
+  battery_type?: string;
+}
+
+interface BatteryData {
+  function?: string;
+  cell_count?: number;
+  sensor_count?: number;
+  current?: number;
+  voltage?: number;
+  time_remaining_to_charge?: string;
+  time_remaining_to_empty?: string;
+  pv_power?: number;
+  load_power?: number;
+  remaining_charge?: number;
+  capacity?: number;
+  model?: string;
+  device_id?: number;
+  [key: string]: any; // For dynamic properties like cell_voltage_0, temperature_0, etc.
+}
+
 // Debug flag - set to true to use mock data instead of API calls
 const USE_MOCK_DATA = true;
 
+const router = useRouter();
 const error = ref('Connecting...');
-const solarData = ref({});
-const batteryData = ref({});
+const solarData = ref<SolarData>({});
+const batteryData = ref<BatteryData>({});
 let intervalId: number | null = null;
 
 // Use the global toast
@@ -117,6 +166,26 @@ const handleErrorClick = () => {
   }
 };
 
+const navigateToBattery = () => {
+  if (!error.value) {
+    router.push({
+      path: '/battery'
+    });
+  } else {
+    handleErrorClick();
+  }
+};
+
+const navigateToSolar = () => {
+  if (!error.value) {
+    router.push({
+      path: '/solar'
+    });
+  } else {
+    handleErrorClick();
+  }
+};
+
 onMounted(() => {
   fetchData();
   intervalId = window.setInterval(fetchData, 5000);
@@ -134,5 +203,9 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.5rem;
+
+  &.disconnected {
+    opacity: 0.5;
+  }
 }
 </style>
