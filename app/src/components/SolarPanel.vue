@@ -15,21 +15,21 @@
         <div class="stat">
           <h4>Voltage</h4>
           <p class="value">
-            <BatteryMedium :size="20" class="icon" />
+            <BatteryMedium :size="24" class="icon" />
             {{ solarData?.pv_voltage || '0' }}V
           </p>
         </div>
         <div class="stat">
-          <h4>Load</h4>
+          <h4 class="text-center">Load</h4>
           <p class="value">
-            <ArrowRight :size="20" class="icon" />
+            <ArrowRight :size="24" class="icon" />
             {{ solarData?.load_power || '0' }}A
           </p>
         </div>
         <div class="stat">
-          <h4>Today</h4>
+          <h4 class="text-right">Today</h4>
           <p class="value">
-            <Calendar :size="20" class="icon" />
+            <Calendar :size="24" class="icon" />
             {{ solarData?.power_generation_today || '0' }}Wh
           </p>
         </div>
@@ -58,7 +58,7 @@ const props = defineProps({
 // assuming max power is 400W, or use max_charging_power_today
 const solarPowerPercentage = computed(() => {
   const currentPower = props.solarData?.pv_power || 0;
-  const maxPower = props.solarData?.max_charging_power_today || 200;
+  const maxPower = 200;
   const percentage = (currentPower / maxPower) * 100;
   return Math.min(percentage, 100); // Cap at 100%
 });

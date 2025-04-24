@@ -1,11 +1,11 @@
 <template>
-  <div class="top-bar small">
-    <p class="app-name">
+  <div class="top-bar">
+    <p class="app-name small">
       DEFENDER<span class="fgColor-muted">OS</span>
     </p>
     <div class="top-bar-right">
-      <p class="font-monospace">{{ error ? '--' : temp }}ºC</p>
-      <p class="font-monospace">{{ formattedTime }}</p>
+      <p class="font-monospace small">{{ error ? '--' : temp }}ºC</p>
+      <p class="font-monospace small">{{ formattedTime }}</p>
     </div>
   </div>
 </template>

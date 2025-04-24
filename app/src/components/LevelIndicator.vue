@@ -54,13 +54,13 @@ const getColorClass = computed(() => {
 
 <style lang="scss" scoped>
 .level-container {
-  border: 2px solid var(--panel-bg);
+  outline: 2px solid var(--panel-bg);
   background: var(--panel-bg);
-  border-radius: 50cqh;
+  border-radius: 1rem;
   width: 100%;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   position: relative;
-  height: 2rem;
+  height: 3rem;
   &.charging {
     background-image: linear-gradient(
       -45deg,
@@ -83,18 +83,19 @@ const getColorClass = computed(() => {
   border-radius: 10px;
   transition: width 0.8s ease-out;
   text-align: center;
-  font-size: 4cqh;
+  font-size: 1.5rem;
   font-weight: 500;
   box-sizing: border-box;
-  border-radius: 50cqh;
+  border-radius: 1rem;
   overflow: visible;
   animation: fill 1.5s ease-in-out;
   animation-fill-mode: forwards;
-  min-width: 80px;
+  min-width: 100px;
   position: relative;
   display: flex;
   align-items: center;
   &.charging {
+    background: linear-gradient(90deg, #4CAF50, #4caf91);
     outline: 2px solid var(--primary);
     animation:
       fill 1.5s ease-out,

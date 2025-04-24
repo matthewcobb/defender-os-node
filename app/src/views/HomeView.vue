@@ -73,7 +73,11 @@ const mockRenogyData = [
     "temperature_3": 11.0,
     "current": 0.48,
     "voltage": 13.4,
-    "remaining_charge": 69,
+    "time_remaining_to_charge": "1hr 40mins",
+    "time_remaining_to_empty": "1hr 40mins",
+    "pv_power": 10,
+    "load_power": 10,
+    "remaining_charge": 40,
     "capacity": 99.99,
     "model": "RBT100LFP12S-G",
     "device_id": 247
