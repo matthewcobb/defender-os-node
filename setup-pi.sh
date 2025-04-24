@@ -14,7 +14,8 @@ CLONE_DIR="/home/pi/defender-os-node"
 # Update and install dependencies
 echo -e "${BLUE}Updating and installing dependencies...${RESET}"
 sudo apt update
-sudo apt install -y chromium-browser libudev-dev curl python3-pip python3-venv plymouth gpiozero \
+sudo apt upgrade -y
+sudo apt install -y chromium-browser libudev-dev curl python3-pip python3-venv plymouth python3-gpiozero \
      python3-gi python3-gi-cairo gir1.2-gtk-3.0 fonts-noto-color-emoji python3-rpi-lgpio
 # # Install Wayfire Plugins
 # sudo cp scripts/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so /usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so

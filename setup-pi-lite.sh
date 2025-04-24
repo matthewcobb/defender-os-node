@@ -27,18 +27,18 @@ sudo raspi-config nonint do_boot_behaviour B2
 # Configure Wayfire
 echo -e "${BLUE}Creating Wayfire autostart...${RESET}"
 mkdir -p ~/.config
-cp "{$CLONE_DIR}/scripts-lite/wayfire/wayfire.ini" ~/.config/wayfire.ini
+cp "$CLONE_DIR/scripts-lite/wayfire/wayfire.ini" ~/.config/wayfire.ini
 
 # Create Wayfire autostart
 mkdir -p ~/.config/wayfire
-cp "{$CLONE_DIR}/scripts-lite/wayfire/autostart" ~/.config/wayfire/autostart
+cp "$CLONE_DIR/scripts-lite/wayfire/autostart" ~/.config/wayfire/autostart
 # chmod +x ~/.config/wayfire/autostart (commited to git)
 
 # Setup Wayfire hide-cursor plugin
 sudo mkdir -p /usr/lib/aarch64-linux-gnu/wayfire
 sudo mkdir -p /usr/share/wayfire/metadata
-sudo cp "{$CLONE_DIR}/scripts-lite/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so" /usr/lib/aarch64-linux-gnu/wayfire/
-sudo cp "{$CLONE_DIR}/scripts-lite/wayfire/usr/share/wayfire/metadata/hide-cursor.xml" /usr/share/wayfire/metadata/
+sudo cp "$CLONE_DIR/scripts-lite/wayfire/usr/lib/aarch64-linux-gnu/wayfire/libhide-cursor.so" /usr/lib/aarch64-linux-gnu/wayfire/
+sudo cp "$CLONE_DIR/scripts-lite/wayfire/usr/share/wayfire/metadata/hide-cursor.xml" /usr/share/wayfire/metadata/
 
 # Install NVM (Node Version Manager)
 echo -e "${BLUE}Installing NVM...${RESET}"
