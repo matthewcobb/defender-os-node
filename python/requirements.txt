@@ -3,6 +3,7 @@ uvicorn
 flask
 quart
 bleak
+python-socketio[asyncio]
 
 # Platform-specific dependencies
 gpiozero; platform_system == "Linux"

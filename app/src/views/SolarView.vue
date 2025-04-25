@@ -67,9 +67,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useRenogyStore } from '../stores/renogyStore';
 import FullScreenDisplay from '../components/FullScreenDisplay.vue';
 import LevelIndicator from '../components/LevelIndicator.vue';
-import { useRenogyStore } from '../stores/renogyStore';
 
 const router = useRouter();
 const renogyStore = useRenogyStore();
@@ -79,11 +79,11 @@ const closeView = () => {
 };
 
 onMounted(() => {
-  renogyStore.startPolling();
+  renogyStore.init();
 });
 
 onUnmounted(() => {
-  renogyStore.stopPolling();
+  renogyStore.cleanup();
 });
 </script>
 

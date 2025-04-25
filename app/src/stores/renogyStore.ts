@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { apiService } from '../features/system/services/api';
+import { ref, computed, onUnmounted } from 'vue';
+import { socketEvents, initSocketIO } from '../features/system/services/socketio';
 
 // Define interfaces for Renogy data
 export interface SolarData {
@@ -108,7 +108,8 @@ export const useRenogyStore = defineStore('renogy', () => {
   const solarData = ref<SolarData>({});
   const batteryData = ref<BatteryData>({});
   const error = ref<string>('Connecting...');
-  let intervalId: number | null = null;
+  const isInitialized = ref(false);
+  const isConnected = ref(false);
 
   // Getters
   const isFullyCharged = computed(() => {
@@ -170,48 +171,47 @@ export const useRenogyStore = defineStore('renogy', () => {
     return `${value} Wh`;
   };
 
-  // Actions
-  const fetchData = async () => {
-    try {
-      if (USE_MOCK_DATA) {
-        // Use mock data
-        solarData.value = mockRenogyData[0] as SolarData;
-        batteryData.value = mockRenogyData[1] as BatteryData;
-        error.value = '';
-      } else {
-        // Use real API data
-        const response = await apiService.getRenogyData();
-        if (Array.isArray(response) && response.length >= 2) {
-          // First object is solar controller data
-          solarData.value = response[0];
-          // Second object is battery data
-          batteryData.value = response[1];
-          error.value = '';
-        } else {
-          throw new Error('Invalid data format received');
-        }
+  // Socket.IO event handlers
+  const handleConnectionChange = (connected: boolean) => {
+    isConnected.value = connected;
+    if (!connected) {
+      error.value = 'Disconnected from server';
+    } else {
+      error.value = '';
+    }
+  };
+
+  const handleRenogyData = (data: any) => {
+    if (data && typeof data === 'object') {
+      if (data.solar) {
+        solarData.value = data.solar;
       }
-    } catch (err: any) {
-      error.value = err?.message || 'Connection error';
+      if (data.battery) {
+        batteryData.value = data.battery;
+      }
+      error.value = '';
     }
   };
 
-  const startPolling = () => {
-    // Clear any existing interval
-    stopPolling();
+  // Initialize Socket.IO and set up event listeners
+  const init = () => {
+    if (isInitialized.value) return;
 
-    // Initial fetch
-    fetchData();
+    // Initialize the Socket.IO connection
+    initSocketIO();
 
-    // Set up interval for polling every 5 seconds
-    intervalId = window.setInterval(fetchData, 5000);
+    // Set up event listeners
+    socketEvents.on('connected', handleConnectionChange);
+    socketEvents.on('renogy:data_update', handleRenogyData);
+    socketEvents.on('renogy:initial_state', handleRenogyData);
+    isInitialized.value = true;
   };
 
-  const stopPolling = () => {
-    if (intervalId !== null) {
-      clearInterval(intervalId);
-      intervalId = null;
-    }
+  // Cleanup when component unmounts
+  const cleanup = () => {
+    socketEvents.off('connected', handleConnectionChange);
+    socketEvents.off('renogy:data_update', handleRenogyData);
+    socketEvents.off('renogy:initial_state', handleRenogyData);
   };
 
   return {
@@ -219,6 +219,7 @@ export const useRenogyStore = defineStore('renogy', () => {
     solarData,
     batteryData,
     error,
+    isConnected,
 
     // Getters
     isFullyCharged,
@@ -232,9 +233,8 @@ export const useRenogyStore = defineStore('renogy', () => {
     formatChargingStatus,
     formatTotalPower,
 
-    // Actions
-    fetchData,
-    startPolling,
-    stopPolling
+    // Socket.IO methods
+    init,
+    cleanup
   };
 });

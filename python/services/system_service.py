@@ -14,6 +14,7 @@ log = logging.getLogger('system_service')
 
 from config.settings import PROJECT_ROOT, APP_DIR
 from flask import jsonify
+from controllers.socketio_controller import emit_event, update_last_state
 
 # Path to the fetch.sh script
 FETCH_SCRIPT = os.path.join(PROJECT_ROOT, "fetch.sh")
@@ -58,17 +59,38 @@ async def start_system_update():
         logging.error(f"Error initiating update: {str(e)}")
         return {"error": str(e)}, 500
 
+async def broadcast_update_status():
+    """Broadcast current update status to all SocketIO clients"""
+    await emit_event('system', 'update_status', update_status)
+
+async def update_status_changed(new_status=None):
+    """Handle update status changes and broadcast to SocketIO clients"""
+    global update_status
+
+    # If a new status is provided, update the global status
+    if new_status:
+        update_status = new_status
+
+    # Store the status in the Socket.IO last_state
+    update_last_state('system', update_status)
+
+    # Broadcast the updated status
+    await broadcast_update_status()
+
 async def run_system_update():
     """Run the system update by calling the fetch.sh script and relaying its output"""
     global update_status
 
     # Reset update status
-    update_status = {
+    new_status = {
         "overall_status": "in_progress",
         "logs": [],
         "current_step": None,
         "error": None
     }
+
+    # Update and broadcast the initial status
+    await update_status_changed(new_status)
 
     logging.info(f"Starting system update using {FETCH_SCRIPT}")
 
@@ -109,6 +131,8 @@ async def run_system_update():
                         "status": "in_progress",
                         "message": line.split("] ")[1] if "] " in line else ""
                     }
+                    # Broadcast the updated status
+                    await broadcast_update_status()
 
                 elif action_type == "OVERALL":
                     if status == "completed":
@@ -118,6 +142,13 @@ async def run_system_update():
                         # Extract error message if available
                         error_msg = line.split("] ")[1] if "] " in line else "Update process failed"
                         update_status["error"] = error_msg
+                    # Broadcast the updated status
+                    await broadcast_update_status()
+            else:
+                # For regular log updates, periodically broadcast
+                # This limits broadcasting to avoid overwhelming connections
+                if len(update_status["logs"]) % 5 == 0:
+                    await broadcast_update_status()
 
         # Wait for process to complete
         await process.stderr.read()  # Read stderr but don't process it - fetch.sh handles errors
@@ -141,12 +172,18 @@ async def run_system_update():
 
         logging.info(f"Update process completed with status: {update_status['overall_status']}")
 
+        # Final status update broadcast
+        await broadcast_update_status()
+
     except Exception as e:
         error_msg = str(e)
         logging.error(f"Error running update script: {error_msg}")
         update_status["overall_status"] = "failed"
         update_status["error"] = error_msg
         update_status["logs"].append(f"❌ Error: {error_msg}")
+
+        # Broadcast error status
+        await broadcast_update_status()
 
 def get_update_status():
     """Get the current status of the system update"""

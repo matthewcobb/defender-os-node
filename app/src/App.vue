@@ -22,7 +22,7 @@ import DefenderOS from './components/DefenderOS.vue';
 import ToastMessage from './components/ToastMessage.vue';
 import { apiService } from './features/system/services/api';
 import { useToast } from './features';
-import { initGpioService, disconnect } from './features/system/services/gpio';
+import { useGpioStore } from './stores/gpioStore';
 
 const carplayContainer = ref<HTMLDivElement | null>(null);
 const width = ref(0);
@@ -34,9 +34,10 @@ const updateToastVisibility = (show: boolean) => {
   if (!show) hideToast();
 };
 
-// Initialize the GPIO service
+// Initialize the GPIO store
 const router = useRouter();
-initGpioService(router);
+const gpioStore = useGpioStore();
+gpioStore.init(router);
 
 onMounted(async () => {
   // Wait for next DOM update so container is rendered
@@ -65,8 +66,8 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  // Clean up GPIO service when app is unmounted
-  disconnect();
+  // Clean up GPIO store when app is unmounted
+  gpioStore.cleanup();
 });
 </script>
 

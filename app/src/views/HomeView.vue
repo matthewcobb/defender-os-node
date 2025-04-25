@@ -56,11 +56,11 @@ const navigateToSolar = () => {
 };
 
 onMounted(() => {
-  renogyStore.startPolling();
+  renogyStore.init();
 });
 
 onUnmounted(() => {
-  renogyStore.stopPolling();
+  renogyStore.cleanup();
 });
 </script>
 

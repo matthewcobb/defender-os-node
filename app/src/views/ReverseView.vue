@@ -13,10 +13,11 @@
 import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import ReverseCameraDisplay from '../components/ReverseCameraDisplay.vue';
-import { isReversing } from '../features/system/services/gpio'; // Use the main GPIO service export
+import { useGpioStore } from '../stores/gpioStore';
 
 const router = useRouter();
 const route = useRoute();
+const gpioStore = useGpioStore();
 const showCamera = ref(true);
 const cameraDeviceId = ref<string | undefined>(undefined);
 const isFromReverseSensor = ref(false);
@@ -51,8 +52,8 @@ const clearCloseTimer = () => {
   }
 };
 
-// Watch the isReversing state from the shared GPIO service
-watch(isReversing, (newValue) => {
+// Watch the isReversing state from the GPIO store
+watch(() => gpioStore.isReversing, (newValue) => {
   console.log('isReversing', newValue);
   // If this is a reverse state event, mark this as coming from the sensor
   if (newValue === true) {
@@ -64,18 +65,23 @@ watch(isReversing, (newValue) => {
   // If we're no longer reversing and we came from the reverse sensor
   else if (newValue === false && isFromReverseSensor.value) {
     // Set a timer to close the view after 5 seconds
-    clearCloseTimer(); // Clear any existing timer first
+    clearCloseTimer();
 
     closeTimer.value = window.setTimeout(() => {
       closeCamera();
       closeTimer.value = null;
-    }, 5000); // 5 seconds delay
+    }, 5000);
 
     console.log('Reverse state off: Camera will close in 5 seconds unless reversed again');
   }
 });
 
 onMounted(async () => {
+  // Make sure the GPIO store is initialized
+  if (!gpioStore.isInitialized) {
+    gpioStore.init();
+  }
+
   await loadCameraSettings();
 
   // Check if this view was opened via the sensor (from URL params)
@@ -85,13 +91,12 @@ onMounted(async () => {
   startFullscreen.value = route.query.fullscreen === 'true';
 
   // Also check current reverse state in case we missed an update
-  if (isReversing.value) {
+  if (gpioStore.isReversing) {
     isFromReverseSensor.value = true;
   }
 });
 
 onUnmounted(() => {
-  // Clean up any pending timers
   clearCloseTimer();
 });
 </script>
