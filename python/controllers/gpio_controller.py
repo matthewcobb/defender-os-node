@@ -16,14 +16,6 @@ log = logging.getLogger(__name__)
 # Create blueprint
 gpio_bp = Blueprint('gpio', __name__, url_prefix='/gpio')
 
-# Set up GPIO
-if not DEVELOPMENT_MODE:
-    try:
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(REVERSE_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    except Exception as e:
-        log.error(f"GPIO setup error: {e}")
-
 # Track current reversing state
 is_reversing = False
 
@@ -31,6 +23,20 @@ is_reversing = False
 potential_new_state = None
 potential_state_start_time = 0
 STATE_CHANGE_THRESHOLD = 0.5  # seconds
+
+def initialize_gpio():
+    """Initialize GPIO settings"""
+    if not DEVELOPMENT_MODE:
+        try:
+            log.info(f"Initializing GPIO on pin {REVERSE_PIN}")
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(REVERSE_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            log.info("GPIO setup completed successfully")
+            return True
+        except Exception as e:
+            log.error(f"GPIO setup error: {e}")
+            return False
+    return True
 
 def read_gpio_state():
     """Read the current state of the reverse light GPIO pin"""
@@ -47,6 +53,11 @@ def read_gpio_state():
 async def monitor_reverse_light():
     """Monitor the reverse light GPIO pin for changes"""
     global is_reversing, potential_new_state, potential_state_start_time
+
+    # Initialize GPIO at the start of monitoring
+    if not initialize_gpio():
+        log.error("Failed to initialize GPIO, monitoring will not work")
+        return
 
     log.info(f"Starting reverse light monitoring on pin {REVERSE_PIN}")
 
