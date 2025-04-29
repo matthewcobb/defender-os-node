@@ -18,9 +18,6 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger('quart.app')
 log.setLevel(logging.INFO)
 
-# Create Socket.IO ASGI app
-asgi_app = socketio.ASGIApp(sio)
-
 # Create Quart app
 app = Quart(__name__)
 
@@ -48,8 +45,6 @@ async def before_serving():
     # Start periodic Renogy data updates
     app.add_background_task(start_periodic_updates)
 
-# Mount the Socket.IO app - moved outside if block to ensure it's always mounted
-app = socketio.ASGIApp(sio, app)
-
-if __name__ == '__main__':
-    app.run(debug=DEBUG, host=HOST, port=PORT)
+# Create the final ASGI application for gunicorn to use
+# This must be named 'application' to match your gunicorn configuration
+application = socketio.ASGIApp(sio, app)
