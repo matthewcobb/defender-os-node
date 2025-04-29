@@ -5,7 +5,6 @@ import time
 import logging
 import asyncio
 from quart import Blueprint, jsonify
-import RPi.GPIO as GPIO
 from config.settings import REVERSE_PIN, DEVELOPMENT_MODE
 from controllers.socketio_controller import emit_event
 
@@ -24,28 +23,59 @@ potential_new_state = None
 potential_state_start_time = 0
 STATE_CHANGE_THRESHOLD = 0.5  # seconds
 
-def initialize_gpio():
-    """Initialize GPIO settings"""
-    if not DEVELOPMENT_MODE:
-        try:
-            log.info(f"Initializing GPIO on pin {REVERSE_PIN}")
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setup(REVERSE_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-            log.info("GPIO setup completed successfully")
-            return True
-        except Exception as e:
-            log.error(f"GPIO setup error: {e}")
-            return False
-    return True
+# GPIO setup
+reverse_sensor = None
+
+# Try to initialize GPIO
+if not DEVELOPMENT_MODE:
+    try:
+        # For Raspberry Pi 5, we need to use the lgpio pin factory
+        import lgpio
+        from gpiozero import DigitalInputDevice
+        from gpiozero import Device
+        from gpiozero.pins.lgpio import LGPIOFactory
+
+        # Set the default pin factory to lgpio
+        Device.pin_factory = LGPIOFactory()
+        log.info("Using gpiozero with lgpio pin factory for Raspberry Pi 5")
+
+        # Initialize with lgpio pin factory
+        # Using pull-up resistor so the pin is normally HIGH when not in reverse
+        reverse_sensor = DigitalInputDevice(
+            REVERSE_PIN,
+            pull_up=True  # Use pull-up resistor (active state will be LOW by default)
+        )
+
+        # Log the initial state of the pin
+        initial_pin_state = reverse_sensor.is_active
+        initial_reverse_state = not initial_pin_state
+
+        log.info(f"GPIO reverse sensor initialized on pin BCM{REVERSE_PIN} with pull-up")
+        log.info(f"Initial reverse sensor pin state: {'ACTIVE (LOW)' if initial_pin_state else 'INACTIVE (HIGH)'}")
+        log.info(f"Initial car reverse state: {'IN REVERSE' if initial_reverse_state else 'NOT IN REVERSE'}")
+
+        # Use the initial state to initialize our is_reversing state
+        is_reversing = initial_reverse_state
+        log.info(f"Setting initial reversing state to: {is_reversing}")
+
+    except Exception as e:
+        log.error(f"Failed to initialize GPIO: {e}")
+        log.warning("Using fallback mode - no GPIO functionality")
+        is_reversing = False
+else:
+    is_reversing = False
 
 def read_gpio_state():
     """Read the current state of the reverse light GPIO pin"""
-    if DEVELOPMENT_MODE:
+    if DEVELOPMENT_MODE or reverse_sensor is None:
         # For development without actual GPIO hardware
         return False
 
     try:
-        return GPIO.input(REVERSE_PIN) == 1
+        # Invert the value from the sensor to get the correct reversing state
+        # When pin is active (LOW), the car is NOT in reverse
+        # When pin is inactive (HIGH), the car IS in reverse
+        return not reverse_sensor.is_active
     except Exception as e:
         log.error(f"Error reading GPIO: {e}")
         return False
@@ -53,11 +83,6 @@ def read_gpio_state():
 async def monitor_reverse_light():
     """Monitor the reverse light GPIO pin for changes"""
     global is_reversing, potential_new_state, potential_state_start_time
-
-    # Initialize GPIO at the start of monitoring
-    if not initialize_gpio():
-        log.error("Failed to initialize GPIO, monitoring will not work")
-        return
 
     log.info(f"Starting reverse light monitoring on pin {REVERSE_PIN}")
 
