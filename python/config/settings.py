@@ -26,3 +26,7 @@ APP_DIR = os.path.join(PROJECT_ROOT, 'app')
 DEBUG = True
 HOST = '0.0.0.0'
 PORT = 5000
+
+# GPIO settings
+REVERSE_PIN = 7
+DEVELOPMENT_MODE = False  # Set to True for development without GPIO hardware

@@ -6,7 +6,7 @@ import logging
 import asyncio
 from quart import Blueprint, jsonify
 import RPi.GPIO as GPIO
-from config.settings import REVERSE_PIN, USE_FALLBACK
+from config.settings import REVERSE_PIN, DEVELOPMENT_MODE
 from controllers.socketio_controller import emit_event
 
 # Configure logging
@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 gpio_bp = Blueprint('gpio', __name__, url_prefix='/gpio')
 
 # Set up GPIO
-if not USE_FALLBACK:
+if not DEVELOPMENT_MODE:
     try:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(REVERSE_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -34,7 +34,7 @@ STATE_CHANGE_THRESHOLD = 0.5  # seconds
 
 def read_gpio_state():
     """Read the current state of the reverse light GPIO pin"""
-    if USE_FALLBACK:
+    if DEVELOPMENT_MODE:
         # For development without actual GPIO hardware
         return False
 
