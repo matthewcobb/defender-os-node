@@ -6,5 +6,5 @@ bleak
 python-socketio[asyncio]
 
 # Platform-specific dependencies
-gpiozero>=2.0
-lgpio>=2.0.0
+gpiozero
+lgpio
