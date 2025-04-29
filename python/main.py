@@ -48,7 +48,8 @@ async def before_serving():
     # Start periodic Renogy data updates
     app.add_background_task(start_periodic_updates)
 
+# Mount the Socket.IO app - moved outside if block to ensure it's always mounted
+app = socketio.ASGIApp(sio, app)
+
 if __name__ == '__main__':
-    # Mount the Socket.IO app
-    app = socketio.ASGIApp(sio, app)
     app.run(debug=DEBUG, host=HOST, port=PORT)

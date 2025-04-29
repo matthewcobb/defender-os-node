@@ -39,6 +39,9 @@ export function initSocketIO() {
     reconnectionDelay: 1000,
     reconnectionDelayMax: 30000,
     timeout: 20000,
+    transports: ['polling', 'websocket'],
+    withCredentials: false,
+    path: '/socket.io',
   });
 
   // Connection event handlers

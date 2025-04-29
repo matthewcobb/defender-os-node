@@ -11,7 +11,15 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 # Create Socket.IO server
-sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
+sio = socketio.AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins='*',
+    logger=True,
+    engineio_logger=True,
+    ping_timeout=30,
+    ping_interval=15,
+    allow_upgrades=True
+)
 
 # Create Blueprint for Socket.IO routes
 sio_bp = Blueprint('socketio', __name__)
