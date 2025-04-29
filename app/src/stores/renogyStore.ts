@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
 import { socketEvents, initSocketIO } from '../features/system/services/socketio';
 
 // Define interfaces for Renogy data
@@ -46,62 +46,6 @@ export interface BatteryData {
   device_id?: number;
   [key: string]: any; // For dynamic properties like cell_voltage_0, temperature_0, etc.
 }
-
-// Debug flag for using mock data
-const USE_MOCK_DATA = true;
-
-// Mock data for debug mode
-const mockRenogyData = [
-  {
-    "function": "READ",
-    "model": "RBC50D1S-G1",
-    "device_id": 96,
-    "battery_percentage": 100,
-    "battery_voltage": 13.4,
-    "battery_current": 20,
-    "battery_temperature": 25,
-    "controller_temperature": 21,
-    "load_status": "off",
-    "load_voltage": 12.5,
-    "load_current": 0.0,
-    "load_power": 10,
-    "pv_voltage": 18.7,
-    "pv_current": 0.45,
-    "pv_power": 10,
-    "max_charging_power_today": 200,
-    "max_discharging_power_today": 0,
-    "charging_amp_hours_today": 4,
-    "discharging_amp_hours_today": 0,
-    "power_generation_today": 54,
-    "power_consumption_today": 0,
-    "power_generation_total": 39664,
-    "charging_status": "mppt",
-    "battery_type": "lithium"
-  },
-  {
-    "function": "READ",
-    "cell_count": 4,
-    "cell_voltage_0": 3.3,
-    "cell_voltage_1": 3.3,
-    "cell_voltage_2": 3.3,
-    "cell_voltage_3": 3.3,
-    "sensor_count": 4,
-    "temperature_0": 11.0,
-    "temperature_1": 11.0,
-    "temperature_2": 11.0,
-    "temperature_3": 11.0,
-    "current": 0.48,
-    "voltage": 13.4,
-    "time_remaining_to_charge": "1hr 40mins",
-    "time_remaining_to_empty": "1hr 40mins",
-    "pv_power": 10,
-    "load_power": 10,
-    "remaining_charge": 40,
-    "capacity": 99.99,
-    "model": "RBT100LFP12S-G",
-    "device_id": 247
-  }
-];
 
 export const useRenogyStore = defineStore('renogy', () => {
   // State
