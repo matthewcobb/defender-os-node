@@ -6,5 +6,5 @@ bleak
 python-socketio[asyncio]
 
 # Platform-specific dependencies
-gpiozero
-lgpio
+gpiozero; platform_system == "Linux"
+lgpio; platform_system == "Linux"
