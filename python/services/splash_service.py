@@ -19,11 +19,11 @@ def remove_splash_screen():
 
             try:
                 os.kill(pid, signal.SIGTERM)
-                logging.info(f"Killed splash screen with PID {pid}")
+                logging.info(f"🟢 Killed splash screen with PID {pid}")
             except ProcessLookupError:
-                logging.info(f"No process with PID {pid}")
+                logging.info(f"ℹ️ No process with PID {pid}")
             except Exception as e:
-                logging.error(f"Error killing splash process: {str(e)}")
+                logging.error(f"🔴 Error killing splash process: {str(e)}")
 
             # Remove the PID file
             try:
@@ -41,10 +41,10 @@ def remove_splash_screen():
                 )
                 return {"status": "success", "message": "Attempted to kill splash screen processes"}, 200
             except Exception as e:
-                logging.error(f"Error killing splash processes: {str(e)}")
+                logging.error(f"🔴 Error killing splash processes: {str(e)}")
 
         return {"status": "warning", "message": "No splash screen found to remove"}, 200
 
     except Exception as e:
-        logging.error(f"Error removing splash screen: {str(e)}")
+        logging.error(f"🔴 Error removing splash screen: {str(e)}")
         return {"status": "error", "message": f"Failed to remove splash screen: {str(e)}"}, 500

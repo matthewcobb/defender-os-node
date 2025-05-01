@@ -2,18 +2,24 @@
 
 # Renogy device configurations
 DCDC_CONFIG = {
-    'type': 'RNG_CTRL',
-    'mac_address': 'AC:4D:16:19:14:1A',
-    'name': 'BT-TH-9B26D2DC',
+    'adapter': 'hci0',
+    'type': 'rng_ctrl',
+    'mac_addr': 'F9A78286-C476-FAFA-B979-8A15259A1768',
+    'alias': 'BT-TH-1619141A',
     'device_id': 255
 }
 
 BATTERY_CONFIG = {
-    'type': 'RNG_BATT',
-    'mac_address': 'FC:A8:9B:26:D2:DC',
-    'name': 'BT-TH-9B26D2DC',
+    'adapter': 'hci0',
+    'type': 'rng_batt',
+    'mac_addr': '7BD4C7F0-B018-68EA-BBAD-7D21D527310D',
+    'alias': 'BT-TH-9B26D2DC',
     'device_id': 255
 }
+
+# Renogy
+POLL_INTERVAL = 5  # seconds
+TEMPERATURE_UNIT = 'C'
 
 # Paths
 import os
