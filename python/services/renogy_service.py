@@ -7,6 +7,7 @@ from renogybt import RoverClient, BatteryClient, LipoModel
 from renogybt.DeviceManager import DeviceManager
 from config.settings import DCDC_CONFIG, BATTERY_CONFIG
 from controllers.socketio_controller import emit_event
+import datetime
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -164,6 +165,14 @@ class RenogyService:
     async def on_device_error(self, device_key, device, error):
         """Handle device errors"""
         log.error(f"Device error ({device_key}): {error}")
+
+        # Emit error event to websocket clients
+        await emit_event('renogy', 'error', {
+            'device': device_key,
+            'message': error,
+            'timestamp': str(datetime.datetime.now()),
+            'code': 'CONNECTION_LOST' if 'connection loss' in error else 'DEVICE_ERROR'
+        })
 
     def get_latest_data(self):
         """Get latest combined data"""

@@ -134,7 +134,12 @@ class BaseClient:
             # If we exited the loop because we lost connection, update the state
             if self.polling and (not self.ble_manager or not self.ble_manager.is_connected):
                 self.polling = False
-                logging.warning(f"Polling stopped for {self.alias} due to connection loss")
+                error_msg = f"Polling stopped for {self.alias} due to connection loss"
+                logging.warning(error_msg)
+
+                # Notify the error callback about connection loss
+                if self.on_error_callback:
+                    await self.on_error_callback(self, error_msg)
         except asyncio.CancelledError:
             # Normal cancellation
             logging.info(f"Polling task cancelled for {self.alias}")
@@ -142,6 +147,10 @@ class BaseClient:
         except Exception as e:
             logging.error(f"Unexpected error in polling loop: {e}")
             self.polling = False
+
+            # Notify the error callback about the error
+            if self.on_error_callback:
+                await self.on_error_callback(self, f"Polling error: {str(e)}")
 
     async def _read_next_section(self):
         """Read the next section from the device"""
