@@ -68,22 +68,33 @@ class DeviceManager:
             self.connecting = False
 
     async def start_polling(self):
-        """Start polling for all devices"""
-        poll_tasks = []
+        """Start polling for all devices sequentially to prevent overwhelming the BLE stack"""
+        connected_devices = []
 
-        # Only start polling for connected devices
+        # First, identify all connected devices
         for device_key, device in self.devices.items():
             if device.ble_manager and device.ble_manager.is_connected:
-                poll_tasks.append(device.start_polling())
-                logging.info(f"Starting polling for device: {device_key}")
+                connected_devices.append((device_key, device))
+                logging.info(f"Device ready for polling: {device_key}")
             else:
                 logging.warning(f"Cannot start polling for {device_key}: not connected")
 
-        if poll_tasks:
-            await asyncio.gather(*poll_tasks)
-            logging.info(f"Started polling for {len(poll_tasks)} devices")
-        else:
+        if not connected_devices:
             logging.warning("No connected devices to poll")
+            return
+
+        # Start polling devices one at a time with a delay between each
+        logging.info(f"Starting sequential polling for {len(connected_devices)} devices")
+        for idx, (device_key, device) in enumerate(connected_devices):
+            logging.info(f"Starting polling for device: {device_key}")
+            await device.start_polling()
+
+            # Add a delay between starting polling for each device
+            # This prevents overwhelming the BLE stack on Raspberry Pi
+            if idx < len(connected_devices) - 1:  # Don't sleep after the last device
+                await asyncio.sleep(2)
+
+        logging.info(f"Started polling for all {len(connected_devices)} devices")
 
     async def stop(self):
         """Stop all devices"""
