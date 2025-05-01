@@ -2,69 +2,83 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { socketEvents, initSocketIO } from '../features/system/services/socketio';
 
-// Define interface for Renogy data
-export interface RenogyData {
-  // Common data
+// Define interfaces for Renogy data
+export interface SolarData {
+  function?: string;
   model?: string;
   device_id?: number;
-
-  // Battery data
+  battery_percentage?: number;
   battery_voltage?: number;
   battery_current?: number;
-  battery_percentage?: number;
-  remaining_charge?: number;
-  capacity?: number;
-  time_remaining_to_charge?: string;
-  time_remaining_to_empty?: string;
-
-  // Solar data
+  battery_temperature?: number;
+  controller_temperature?: number;
+  load_status?: string;
+  load_voltage?: number;
+  load_current?: number;
+  load_power?: number;
   pv_voltage?: number;
   pv_current?: number;
   pv_power?: number;
-  controller_temperature?: number;
-  load_power?: number;
   max_charging_power_today?: number;
+  max_discharging_power_today?: number;
+  charging_amp_hours_today?: number;
+  discharging_amp_hours_today?: number;
   power_generation_today?: number;
+  power_consumption_today?: number;
   power_generation_total?: number;
   charging_status?: string;
+  battery_type?: string;
+}
 
-  // Dynamic properties
+export interface BatteryData {
+  function?: string;
   cell_count?: number;
   sensor_count?: number;
+  current?: number;
+  voltage?: number;
+  time_remaining_to_charge?: string;
+  time_remaining_to_empty?: string;
+  pv_power?: number;
+  load_power?: number;
+  remaining_charge?: number;
+  capacity?: number;
+  model?: string;
+  device_id?: number;
   [key: string]: any; // For dynamic properties like cell_voltage_0, temperature_0, etc.
 }
 
 export const useRenogyStore = defineStore('renogy', () => {
   // State
-  const data = ref<RenogyData>({});
-  const devicesReady = ref(false);
+  const solarData = ref<SolarData>({});
+  const batteryData = ref<BatteryData>({});
+  const error = ref<string>('Connecting...');
   const isInitialized = ref(false);
   const isConnected = ref(false);
-  const error = ref(null);
+
   // Getters
   const isFullyCharged = computed(() => {
-    return (data.value?.remaining_charge ?? 0) > 99.5;
+    return (batteryData.value?.remaining_charge ?? 0) > 99.5;
   });
 
   const batteryPercentage = computed(() => {
-    return Math.round(parseFloat(String(data.value?.remaining_charge ?? '0')));
+    return Math.round(parseFloat(String(batteryData.value?.remaining_charge ?? '0')));
   });
 
   const isCharging = computed(() => {
-    return (data.value?.battery_current ?? 0) > 0;
+    return (batteryData.value?.current ?? 0) > 0;
   });
 
   const cellCount = computed(() => {
-    return data.value?.cell_count ?? 0;
+    return batteryData.value?.cell_count ?? 0;
   });
 
   const sensorCount = computed(() => {
-    return data.value?.sensor_count ?? 0;
+    return batteryData.value?.sensor_count ?? 0;
   });
 
   const solarPowerPercentage = computed(() => {
-    const currentPower = data.value?.pv_power || 0;
-    const maxPower = 200; // Supply on roof
+    const currentPower = solarData.value?.pv_power || 0;
+    const maxPower = solarData.value?.max_charging_power_today || 200;
     const percentage = (currentPower / maxPower) * 100;
     return Math.min(percentage, 100); // Cap at 100%
   });
@@ -105,21 +119,22 @@ export const useRenogyStore = defineStore('renogy', () => {
   const handleConnectionChange = (connected: boolean) => {
     isConnected.value = connected;
     if (!connected) {
-      devicesReady.value = false;
+      error.value = 'Disconnected from server';
+    } else {
+      error.value = '';
     }
   };
 
-  const handleRenogyData = (receivedData: any) => {
-    if (receivedData && typeof receivedData === 'object') {
-      devicesReady.value = true;
-      data.value = receivedData;
+  const handleRenogyData = (data: any) => {
+    if (data && typeof data === 'object') {
+      if (data.solar) {
+        solarData.value = data.solar;
+      }
+      if (data.battery) {
+        batteryData.value = data.battery;
+      }
+      error.value = '';
     }
-  };
-
-  const handleRenogyError = (error: any) => {
-    console.error('Renogy error:', error);
-    devicesReady.value = false;
-    error.value = error;
   };
 
   // Initialize Socket.IO and set up event listeners
@@ -133,7 +148,6 @@ export const useRenogyStore = defineStore('renogy', () => {
     socketEvents.on('connected', handleConnectionChange);
     socketEvents.on('renogy:data_update', handleRenogyData);
     socketEvents.on('renogy:initial_state', handleRenogyData);
-    socketEvents.on('renogy:error', handleRenogyError);
     isInitialized.value = true;
   };
 
@@ -142,14 +156,13 @@ export const useRenogyStore = defineStore('renogy', () => {
     socketEvents.off('connected', handleConnectionChange);
     socketEvents.off('renogy:data_update', handleRenogyData);
     socketEvents.off('renogy:initial_state', handleRenogyData);
-    socketEvents.off('renogy:error', handleRenogyError);
   };
 
   return {
     // State
-    data,
+    solarData,
+    batteryData,
     error,
-    devicesReady,
     isConnected,
 
     // Getters

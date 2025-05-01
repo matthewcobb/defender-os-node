@@ -3,196 +3,170 @@ Service for handling Renogy device connections and data retrieval
 """
 import logging
 import asyncio
-from renogybt import RoverClient, BatteryClient, LipoModel, Utils
-from config.settings import DCDC_CONFIG, BATTERY_CONFIG, POLL_INTERVAL
-from controllers.socketio_controller import emit_event
-from datetime import datetime
+from renogybt import RoverClient, BatteryClient, LipoModel
+from config.settings import DCDC_CONFIG, BATTERY_CONFIG, DEVELOPMENT_MODE
+from controllers.socketio_controller import emit_event, update_last_state
 
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-class RenogyService:
-    def __init__(self):
-        self.clients = {}
-        self.should_run = False
-        self.device_data = {
-            'rng_ctrl': {},
-            'rng_batt': {},
-            'combined': {}
-        }
+# Mock data for development mode
+MOCK_RENOGY_DATA = [
+    {
+        "function": "READ",
+        "model": "RBC50D1S-G1",
+        "device_id": 96,
+        "battery_percentage": 100,
+        "battery_voltage": 13.4,
+        "battery_current": 20,
+        "battery_temperature": 25,
+        "controller_temperature": 21,
+        "load_status": "off",
+        "load_voltage": 12.5,
+        "load_current": 0.0,
+        "load_power": 10,
+        "pv_voltage": 18.7,
+        "pv_current": 0.45,
+        "pv_power": 10,
+        "max_charging_power_today": 200,
+        "max_discharging_power_today": 0,
+        "charging_amp_hours_today": 4,
+        "discharging_amp_hours_today": 0,
+        "power_generation_today": 54,
+        "power_consumption_today": 0,
+        "power_generation_total": 39664,
+        "charging_status": "mppt",
+        "battery_type": "lithium"
+    },
+    {
+        "function": "READ",
+        "cell_count": 4,
+        "cell_voltage_0": 3.3,
+        "cell_voltage_1": 3.3,
+        "cell_voltage_2": 3.3,
+        "cell_voltage_3": 3.3,
+        "sensor_count": 4,
+        "temperature_0": 11.0,
+        "temperature_1": 11.0,
+        "temperature_2": 11.0,
+        "temperature_3": 11.0,
+        "current": 0.48,
+        "voltage": 13.4,
+        "time_remaining_to_charge": "1hr 40mins",
+        "time_remaining_to_empty": "1hr 40mins",
+        "pv_power": 10,
+        "load_power": 10,
+        "remaining_charge": 40,
+        "capacity": 99.99,
+        "model": "RBT100LFP12S-G",
+        "device_id": 247
+    }
+]
 
-    async def start(self):
-        self.should_run = True
-        log.info("Starting Renogy service...")
+# Create clients
+dcdc_client = RoverClient(DCDC_CONFIG)
+battery_client = BatteryClient(BATTERY_CONFIG)
 
-        # Initialize clients with configuration from settings.py
-        client_configs = {
-            'rng_ctrl': DCDC_CONFIG,
-            'rng_batt': BATTERY_CONFIG
-        }
+# Background task for periodic data collection
+_update_task = None
+_is_running = False
+_update_interval = 5  # seconds
 
-        # Create appropriate client based on type
-        self.clients['rng_ctrl'] = RoverClient(
-            client_config=client_configs['rng_ctrl'],
-            on_data_callback=self.on_device_data_received,
-            on_error_callback=self.on_error
-        )
+async def connect():
+    """Connect to Renogy devices"""
+    if not DEVELOPMENT_MODE:
+        await dcdc_client.connect()
+        await battery_client.connect()
+    else:
+        log.info("Development mode enabled - using mock data")
 
-        self.clients['rng_batt'] = BatteryClient(
-            client_config=client_configs['rng_batt'],
-            on_data_callback=self.on_device_data_received,
-            on_error_callback=self.on_error
-        )
+async def fetch_data():
+    """Fetch data from Renogy devices"""
+    if DEVELOPMENT_MODE:
+        # Return mock data in development mode
+        return MOCK_RENOGY_DATA, 200
 
-        while self.should_run:
-            # Connection phase
-            try:
-                # Connect to all devices concurrently
-                log.info("Connecting to Renogy devices...")
-                connection_results = {}
-                for device_type, client in self.clients.items():
-                    connection_results[device_type] = await client.connect()
+    # Normal operation - connect to real devices
+    await connect()
 
-                # Check if all connections were successful
-                if all(connection_results.values()):
-                    log.info("Successfully connected to all Renogy devices")
+    if not dcdc_client.is_connected or not battery_client.is_connected:
+        logging.error("RenogyBT not connected")
+        return {"error": "RenogyBT not connected"}, 500
 
-                    # Polling phase
-                    try:
-                        while self.should_run:
-                            # Run read tasks sequentially instead of concurrently
-                            # to avoid overloading the Bluetooth controller
-                            for device_type, client in self.clients.items():
-                                log.info(f"Reading data from {device_type}...")
-                                try:
-                                    success = await client.read_all_data()
-                                    if not success:
-                                        log.error(f"Failed to read data from {device_type}")
-                                except Exception as e:
-                                    log.error(f"Error reading from {device_type}: {e}")
-
-                                # Add a small delay between device reads
-                                await asyncio.sleep(1)
-
-                            # Wait for the next polling interval
-                            await asyncio.sleep(POLL_INTERVAL)
-                    except Exception as e:
-                        log.error(f"Error during polling: {e}")
-                else:
-                    # Log which devices failed to connect
-                    for device_type, connected in connection_results.items():
-                        if not connected:
-                            log.error(f"Failed to connect to {device_type}: {self.clients[device_type].client_config.get('alias')}")
-
-                    # Wait before retrying connection
-                    await asyncio.sleep(5)
-            except Exception as e:
-                log.error(f"Error during connection attempt: {e}")
-                await asyncio.sleep(5)
-            finally:
-                # Ensure we disconnect clients if loop is exiting but service is still running
-                if self.should_run:
-                    await self._disconnect_clients()
-
-        # Final cleanup when service is stopping
-        await self._disconnect_clients()
-        log.info("Renogy service stopped")
-
-    async def _disconnect_clients(self):
-        """Disconnect all clients"""
-        for device_type, client in self.clients.items():
-            try:
-                await client.disconnect()
-                log.info(f"Disconnected from {device_type}")
-            except Exception as e:
-                log.error(f"Error disconnecting from {device_type}: {e}")
-
-    async def stop(self):
-        """Stop the service"""
-        log.info("Stopping Renogy service...")
-        self.should_run = False
-
-    def on_device_data_received(self, client, data):
-        """Handle data received from any device client"""
+    # Compile data request
+    if dcdc_client.latest_data and battery_client.latest_data:
         try:
-            # Get device type directly from client configuration
-            device_type = client.client_config.get('type', '').lower()
-
-            # If type is not specified or invalid, use a fallback
-            if not device_type or device_type not in self.device_data:
-                log.warning(f"Unknown device type: {device_type}, using client name as fallback")
-                device_type = client.__class__.__name__.lower().replace('client', '')
-                if device_type == 'rover':
-                    device_type = 'rng_ctrl'
-                elif device_type == 'battery':
-                    device_type = 'rng_batt'
-
-            # Filter data if needed
-            filtered_data = Utils.filter_fields(data, "")  # Blank for all fields
-
-            # Store the filtered data
-            self.device_data[device_type] = filtered_data
-
-            # Update the model and emit combined data if we have both sets
-            self._update_model_and_emit()
-
-            log.debug(f"{device_type.upper()} data received: {client.client_config.get('alias')}")
+            data = LipoModel(dcdc_client.latest_data, battery_client.latest_data).calculate()
+            logging.info(data)
+            return data, 200
         except Exception as e:
-            log.error(f"Error processing {client.__class__.__name__} data: {e}")
+            logging.error(e)
+            return {"error": str(e)}, 500
+    else:
+        logging.error("No data found")
+        return {"error": "No data found!"}, 500
 
-    def _update_model_and_emit(self):
-        """Update the LipoModel and emit combined data"""
-        if not self.device_data['rng_ctrl'] or not self.device_data['rng_batt']:
-            return  # Don't process until we have both
+async def broadcast_renogy_data():
+    """Broadcast current Renogy data to all Socket.IO clients"""
+    await emit_event('renogy', 'data_update', update_status)
 
-        # Update the model with latest data
-        combined_data = LipoModel(self.device_data).calculate()
+async def update_renogy_data(new_data=None):
+    """Update Renogy data and broadcast to Socket.IO clients"""
+    if new_data:
+        update_last_state('renogy', new_data)
 
-        if combined_data:
-            # Store for later retrieval
-            self.device_data['combined'] = combined_data
+    # Broadcast the updated status
+    await emit_event('renogy', 'data_update', new_data)
 
-            # Emit to websocket clients
-            asyncio.create_task(emit_event('renogy', 'data_update', combined_data))
-            log.debug("Emitted combined Renogy data update")
+async def start_periodic_updates():
+    """Start periodic data collection and broadcasting"""
+    global _update_task, _is_running
 
-    def on_error(self, client, error):
-        """Handle errors from clients"""
-        device_type = client.client_config.get('type', '').lower()
-        log.error(f"Renogy client error ({device_type}): {error}")
+    if _is_running:
+        return
 
-        # Emit error to frontend
-        error_data = {
-            'device_type': device_type,
-            'error': str(error),
-            'timestamp': datetime.now().isoformat()
-        }
-        asyncio.create_task(emit_event('renogy', 'error', error_data))
+    _is_running = True
+    _update_task = asyncio.create_task(_periodic_update())
+    log.info("Started periodic Renogy data updates")
 
-    def get_latest_data(self):
-        """Get the latest data for API requests"""
-        return self.device_data
+async def stop_periodic_updates():
+    """Stop periodic data collection"""
+    global _update_task, _is_running
 
-    async def set_dcdc_load(self, value):
-        """Set the DCDC load state"""
-        if 'rng_ctrl' not in self.clients or not self.clients['rng_ctrl'].connected:
-            log.error("Cannot set load: DCDC not connected")
-            return False
+    _is_running = False
 
-        return await self.clients['rng_ctrl'].set_load(value)
+    if _update_task:
+        _update_task.cancel()
+        try:
+            await _update_task
+        except asyncio.CancelledError:
+            pass
+        _update_task = None
+        log.info("Stopped periodic Renogy data updates")
 
-# Create a singleton instance
-renogy_service = RenogyService()
+async def _periodic_update():
+    """Periodically fetch and broadcast Renogy data"""
+    while _is_running:
+        try:
+            data, status = await fetch_data()
 
-# Export a function to get the main service coroutine for use with app.add_background_task
-async def monitor_renogybt():
-    """Main service coroutine - for use with app.add_background_task"""
-    await renogy_service.start()
+            if status == 200:
+                # Format data for broadcasting
+                if isinstance(data, list) and len(data) >= 2:
+                    renogy_data = {
+                        'solar': data[0],
+                        'battery': data[1]
+                    }
+                    # Broadcast data to all connected clients using Socket.IO
+                    await emit_event('renogy', 'data_update', renogy_data)
+        except Exception as e:
+            log.error(f"Error in periodic Renogy update: {e}")
 
-async def stop_renogybt():
-    """Stop the service - used by app shutdown"""
-    await renogy_service.stop()
+        # Wait for next update interval
+        await asyncio.sleep(_update_interval)
 
-def get_service():
-    """Get the Renogy service instance"""
-    return renogy_service
+def set_update_interval(seconds):
+    """Change the update interval for Renogy data"""
+    global _update_interval
+    _update_interval = max(1, seconds)  # Minimum 1 second

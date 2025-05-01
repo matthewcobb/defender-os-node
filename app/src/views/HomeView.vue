@@ -1,10 +1,14 @@
 <template>
   <div class="home-view">
-    <div class="battery-status" :class="{ 'disconnected': !renogyStore.devicesReady }">
+    <div class="battery-status" :class="{ 'disconnected': renogyStore.error }">
       <LeisureBatteryPanel
+        :batteryData="renogyStore.batteryData"
+        :error="renogyStore.error"
         @click="navigateToBattery"
       />
       <SolarPanel
+        :solarData="renogyStore.solarData"
+        :error="renogyStore.error"
         @click="navigateToSolar"
       />
     </div>
@@ -24,15 +28,15 @@ const renogyStore = useRenogyStore();
 const { error: showError, success: showSuccess } = useToast();
 
 const handleErrorClick = () => {
-  if (!renogyStore.devicesReady) {
-    showError("Connecting... " + renogyStore.error);
+  if (renogyStore.error) {
+    showError(renogyStore.error);
   } else {
     showSuccess('Connected');
   }
 };
 
 const navigateToBattery = () => {
-  if (renogyStore.devicesReady) {
+  if (!renogyStore.error) {
     router.push({
       path: '/battery'
     });
@@ -42,7 +46,7 @@ const navigateToBattery = () => {
 };
 
 const navigateToSolar = () => {
-  if (renogyStore.devicesReady) {
+  if (!renogyStore.error) {
     router.push({
       path: '/solar'
     });

@@ -34,7 +34,7 @@ def get_cpu_temperature():
         temp = round(cpu.temperature)
         return {"temp": temp}, 200
     except Exception as e:
-        logging.error(f"🔴 Error getting CPU temperature: {str(e)}")
+        logging.error(f"Error getting CPU temperature: {str(e)}")
         return {"error": str(e)}, 500
 
 async def close_kiosk():
@@ -46,7 +46,7 @@ async def close_kiosk():
 
         return {"status": "kiosk closed"}, 200
     except Exception as e:
-        logging.error(f"🔴 Error closing kiosk: {str(e)}")
+        logging.error(f"Error closing kiosk: {str(e)}")
         return {"error": str(e)}, 500
 
 async def start_system_update():
@@ -56,7 +56,7 @@ async def start_system_update():
         asyncio.create_task(run_system_update())
         return {"status": "initiated", "message": "Update process started"}, 200
     except Exception as e:
-        logging.error(f"🔴 Error initiating update: {str(e)}")
+        logging.error(f"Error initiating update: {str(e)}")
         return {"error": str(e)}, 500
 
 async def broadcast_update_status():
@@ -92,7 +92,7 @@ async def run_system_update():
     # Update and broadcast the initial status
     await update_status_changed(new_status)
 
-    logging.info(f"🚀 Starting system update using {FETCH_SCRIPT}")
+    logging.info(f"Starting system update using {FETCH_SCRIPT}")
 
     try:
         # Create a process to run the fetch.sh script
@@ -115,7 +115,7 @@ async def run_system_update():
 
             # Add line to logs
             update_status["logs"].append(line)
-            logging.info(f"📊 Update output: {line}")
+            logging.info(f"Update output: {line}")
 
             # Check for progress markers
             match = progress_pattern.search(line)
@@ -170,14 +170,14 @@ async def run_system_update():
                     # If the script completed but didn't explicitly mark as completed
                     update_status["overall_status"] = "complete"
 
-        logging.info(f"🟢 Update process completed with status: {update_status['overall_status']}")
+        logging.info(f"Update process completed with status: {update_status['overall_status']}")
 
         # Final status update broadcast
         await broadcast_update_status()
 
     except Exception as e:
         error_msg = str(e)
-        logging.error(f"🔴 Error running update script: {error_msg}")
+        logging.error(f"Error running update script: {error_msg}")
         update_status["overall_status"] = "failed"
         update_status["error"] = error_msg
         update_status["logs"].append(f"❌ Error: {error_msg}")

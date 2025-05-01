@@ -10,53 +10,53 @@
         <h1>Solar Details</h1>
       </div>
 
-      <div v-if="!renogyStore.devicesReady" class="error-state">
-        <p>Connecting...</p>
+      <div v-if="renogyStore.error" class="error-state">
+        <p>{{ renogyStore.error }}</p>
       </div>
       <div v-else class="solar-data">
         <LevelIndicator :percentage="renogyStore.solarPowerPercentage" type="solar">
-          {{ renogyStore.data?.pv_power || '0' }}W
+          {{ renogyStore.solarData?.pv_power || '0' }}W
         </LevelIndicator>
 
         <div class="stats-grid">
           <div class="stat">
             <h4>Current Status</h4>
-            <p class="value">{{ renogyStore.formatChargingStatus(renogyStore.data?.charging_status) }}</p>
+            <p class="value">{{ renogyStore.formatChargingStatus(renogyStore.solarData?.charging_status) }}</p>
           </div>
 
           <div class="stat">
             <h4>PV Voltage</h4>
-            <p class="value">{{ renogyStore.data?.pv_voltage || '0' }}V</p>
+            <p class="value">{{ renogyStore.solarData?.pv_voltage || '0' }}V</p>
           </div>
 
           <div class="stat">
             <h4>PV Current</h4>
-            <p class="value">{{ renogyStore.data?.pv_current || '0' }}A</p>
+            <p class="value">{{ renogyStore.solarData?.pv_current || '0' }}A</p>
           </div>
 
           <div class="stat">
             <h4>Load Power</h4>
-            <p class="value">{{ renogyStore.data?.load_power || '0' }}W</p>
+            <p class="value">{{ renogyStore.solarData?.load_power || '0' }}W</p>
           </div>
 
           <div class="stat">
             <h4>Power Today</h4>
-            <p class="value">{{ renogyStore.data?.power_generation_today || '0' }}Wh</p>
+            <p class="value">{{ renogyStore.solarData?.power_generation_today || '0' }}Wh</p>
           </div>
 
           <div class="stat">
             <h4>Total Generation</h4>
-            <p class="value">{{ renogyStore.formatTotalPower(renogyStore.data?.power_generation_total) }}</p>
+            <p class="value">{{ renogyStore.formatTotalPower(renogyStore.solarData?.power_generation_total) }}</p>
           </div>
 
           <div class="stat">
             <h4>Max Charging Today</h4>
-            <p class="value">{{ renogyStore.data?.max_charging_power_today || '0' }}W</p>
+            <p class="value">{{ renogyStore.solarData?.max_charging_power_today || '0' }}W</p>
           </div>
 
           <div class="stat">
             <h4>Controller Temperature</h4>
-            <p class="value">{{ renogyStore.data?.controller_temperature || '0' }}°C</p>
+            <p class="value">{{ renogyStore.solarData?.controller_temperature || '0' }}°C</p>
           </div>
         </div>
       </div>
