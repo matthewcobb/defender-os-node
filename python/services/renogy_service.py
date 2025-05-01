@@ -114,8 +114,12 @@ class RenogyService:
         """Periodically update the model and emit data"""
         while self.running:
             try:
-                # Only update if we have both device data
-                if self.data['rng_ctrl'] and self.data['rng_batt']:
+                # Check if devices are still connected before trying to update
+                dcdc_connected = self.device_manager.is_device_connected('dcdc')
+                battery_connected = self.device_manager.is_device_connected('battery')
+
+                # Only update if both devices are connected and we have data
+                if dcdc_connected and battery_connected and self.data['rng_ctrl'] and self.data['rng_batt']:
                     # Update model with latest data
                     self.lipo_model.update_data(self.data)
                     combined_data = self.lipo_model.calculate()
@@ -127,6 +131,11 @@ class RenogyService:
                         # Emit to websocket clients
                         await emit_event('renogy', 'data_update', combined_data)
                         log.debug("Emitted combined Renogy data")
+                elif not dcdc_connected or not battery_connected:
+                    # Log which devices are disconnected
+                    log.debug(f"Skipping update - disconnected devices: " +
+                              (f"DCDC, " if not dcdc_connected else "") +
+                              (f"Battery" if not battery_connected else ""))
             except Exception as e:
                 log.error(f"Error in update loop: {e}")
 
