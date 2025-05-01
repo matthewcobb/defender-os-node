@@ -10,8 +10,8 @@
         <h1>Battery Details</h1>
       </div>
 
-      <div v-if="renogyStore.error" class="error-state">
-        <p>{{ renogyStore.error }}</p>
+      <div v-if="!renogyStore.devicesReady" class="error-state">
+        <p>Connecting...</p>
       </div>
       <div v-else class="battery-data">
         <LevelIndicator
@@ -30,39 +30,39 @@
 
           <div class="stat">
             <h4>Voltage</h4>
-            <p class="value">{{ renogyStore.batteryData?.voltage || '0' }}V</p>
+            <p class="value">{{ renogyStore.data?.battery_voltage || '0' }}V</p>
           </div>
 
           <div class="stat">
             <h4>Current</h4>
-            <p class="value">{{ renogyStore.batteryData?.current || '0' }}A</p>
+            <p class="value">{{ renogyStore.data?.battery_current || '0' }}A</p>
           </div>
 
           <div class="stat">
             <h4>{{ renogyStore.isCharging ? 'Time until full' : 'Time until empty' }}</h4>
             <p class="value">
               {{ renogyStore.isFullyCharged ? '--' : renogyStore.isCharging ?
-                renogyStore.batteryData?.time_remaining_to_charge :
-                renogyStore.batteryData?.time_remaining_to_empty }}
+                renogyStore.data?.time_remaining_to_charge :
+                renogyStore.data?.time_remaining_to_empty }}
             </p>
           </div>
 
-          <div class="stat" v-if="renogyStore.batteryData?.cell_count">
+          <div class="stat" v-if="renogyStore.data?.cell_count">
             <h4>Cell Voltages</h4>
             <div class="cell-voltages">
               <div v-for="i in renogyStore.cellCount" :key="`cell-${i}`" class="cell-voltage">
                 <span>Cell {{ i }}:</span>
-                <span>{{ renogyStore.batteryData[`cell_voltage_${i-1}`] || '0' }}V</span>
+                <span>{{ renogyStore.data[`cell_voltage_${i-1}`] || '0' }}V</span>
               </div>
             </div>
           </div>
 
-          <div class="stat" v-if="renogyStore.batteryData?.sensor_count">
+          <div class="stat" v-if="renogyStore.data?.sensor_count">
             <h4>Temperatures</h4>
             <div class="temperatures">
               <div v-for="i in renogyStore.sensorCount" :key="`temp-${i}`" class="temperature">
                 <span>Sensor {{ i }}:</span>
-                <span>{{ renogyStore.batteryData[`temperature_${i-1}`] || '0' }}°C</span>
+                <span>{{ renogyStore.data[`temperature_${i-1}`] || '0' }}°C</span>
               </div>
             </div>
           </div>

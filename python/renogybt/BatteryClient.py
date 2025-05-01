@@ -1,7 +1,6 @@
-import logging
 from .BaseClient import BaseClient
 from .Utils import bytes_to_int, format_temperature
-
+from config.settings import TEMPERATURE_UNIT
 # Client for Renogy LFP battery with built-in bluetooth / BT-2 module
 
 FUNCTION = {
@@ -10,8 +9,8 @@ FUNCTION = {
 }
 
 class BatteryClient(BaseClient):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, client_config, on_data_callback=None, on_error_callback=None):
+        super().__init__(client_config, on_data_callback, on_error_callback)
         self.data = {}
         self.sections = [
             {'register': 5000, 'words': 17, 'parser': self.parse_cell_volt_info},
@@ -22,7 +21,6 @@ class BatteryClient(BaseClient):
         ]
 
     def parse_cell_volt_info(self, bs):
-        logging.debug("PARSE CELL VOLT INFO")
         data = {}
         data['function'] = FUNCTION.get(bytes_to_int(bs, 1, 1))
         data['cell_count'] = bytes_to_int(bs, 3, 2)
@@ -31,17 +29,15 @@ class BatteryClient(BaseClient):
         self.data.update(data)
 
     def parse_cell_temp_info(self, bs):
-        logging.debug("PARSE CELL TEMP INFO")
         data = {}
         data['function'] = FUNCTION.get(bytes_to_int(bs, 1, 1))
         data['sensor_count'] = bytes_to_int(bs, 3, 2)
         for i in range(0, data['sensor_count']):
-            celcius = bytes_to_int(bs, 5 + i*2, 2, scale = 0.1)
-            data[f'temperature_{i}'] = format_temperature(celcius, 'C')
+            celcius = bytes_to_int(bs, 5 + i*2, 2, scale = 0.1, signed = True)
+            data[f'temperature_{i}'] = format_temperature(celcius, TEMPERATURE_UNIT)
         self.data.update(data)
 
     def parse_battery_info(self, bs):
-        logging.debug("PARSE BATTERY INFO")
         data = {}
         data['function'] = FUNCTION.get(bytes_to_int(bs, 1, 1))
         data['current'] = bytes_to_int(bs, 3, 2, True, scale = 0.01)
@@ -51,14 +47,12 @@ class BatteryClient(BaseClient):
         self.data.update(data)
 
     def parse_device_info(self, bs):
-        logging.debug("PARSE DEVICE INFO")
         data = {}
         data['function'] = FUNCTION.get(bytes_to_int(bs, 1, 1))
-        data['model'] = (bs[3:17]).decode('utf-8')
+        data['model'] = (bs[3:19]).decode('utf-8').rstrip('\x00')
         self.data.update(data)
 
     def parse_device_address(self, bs):
-        logging.debug("PARSE DEVICE ADDRESS")
         data = {}
         data['device_id'] = bytes_to_int(bs, 3, 2)
         self.data.update(data)
