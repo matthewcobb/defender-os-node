@@ -140,7 +140,7 @@ class RenogyService:
                 log.error(f"❌ Error in update loop: {e}")
 
             # Wait before checking again
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
 
     async def stop(self):
         """Stop the Renogy service"""

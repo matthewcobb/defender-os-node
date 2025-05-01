@@ -18,7 +18,7 @@ BATTERY_CONFIG = {
 }
 
 # Renogy
-POLL_INTERVAL = 5  # seconds
+POLL_INTERVAL = 5  # seconds - increased from 5s to reduce Raspberry Pi BLE load
 TEMPERATURE_UNIT = 'C'
 
 # Paths
