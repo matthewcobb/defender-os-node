@@ -4,8 +4,8 @@ from .Utils import bytes_to_int
 # Retrieve last 7 days of historical data from Rover/Wanderer/Adventurer
 
 class RoverHistoryClient(BaseClient):
-    def __init__(self, config, on_data_callback=None, on_error_callback=None):
-        super().__init__(config)
+    def __init__(self, client_config, on_data_callback=None, on_error_callback=None):
+        super().__init__(client_config)
         self.on_data_callback = on_data_callback
         self.on_error_callback = on_error_callback
         self.data = {

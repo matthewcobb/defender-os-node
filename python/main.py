@@ -2,13 +2,14 @@
 Main application entry point
 """
 import logging
+import asyncio
 from quart import Quart
 import socketio
 from controllers.system_controller import system_bp
 from controllers.gpio_controller import gpio_bp, monitor_reverse_light, is_reversing
 from controllers.socketio_controller import sio, sio_bp, update_last_state
 from utils.middleware import add_cors_headers
-from services.renogy_service import monitor_renogybt, stop_renogybt
+from services.renogy_service import RenogyService
 from config.settings import DEBUG, HOST, PORT
 
 # Configure logging
@@ -27,12 +28,18 @@ app.register_blueprint(sio_bp)
 # Add CORS middleware
 app.after_request(add_cors_headers)
 
+# Create global Renogy service instance for app access
+renogy_service = RenogyService()
+
 # Connect to Renogy devices on startup
 @app.before_serving
 async def before_serving():
     """Setup tasks before the server starts"""
-    # Start Renogy service as a background task
-    app.add_background_task(monitor_renogybt)
+    # Start Renogy service
+    renogy_service.start()
+
+    # Add renogy_service to app context for access in other parts of the application
+    app.renogy_service = renogy_service
 
     # Initialize the GPIO state in the Socket.IO controller
     update_last_state('gpio', {'is_reversing': is_reversing})
@@ -49,7 +56,7 @@ async def after_serving():
     log.info("Server shutting down, cleaning up resources...")
 
     # Stop the Renogy service
-    await stop_renogybt()
+    renogy_service.stop()
 
     log.info("Cleanup complete")
 

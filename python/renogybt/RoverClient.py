@@ -34,7 +34,9 @@ BATTERY_TYPE = {
 
 class RoverClient(BaseClient):
     def __init__(self, client_config, on_data_callback=None, on_error_callback=None):
-        super().__init__(client_config, on_data_callback, on_error_callback)
+        super().__init__(client_config)
+        self.on_data_callback = on_data_callback
+        self.on_error_callback = on_error_callback
         self.data = {}
         self.sections = [
             {'register': 12, 'words': 8, 'parser': self.parse_device_info},
@@ -55,20 +57,14 @@ class RoverClient(BaseClient):
             await super().on_data_received(response)
 
     def on_write_operation_complete(self):
-        logging.info("🟢 on_write_operation_complete")
+        logging.info("on_write_operation_complete")
         if self.on_data_callback is not None:
             self.on_data_callback(self, self.data)
 
-    async def set_load(self, value = 0):
-        """Set the load state (on/off)"""
-        if not self.connected:
-            logging.error("🔴 Cannot set load: Device not connected")
-            return False
-
-        logging.info(f"⚡ Setting load {value}")
+    def set_load(self, value = 0):
+        logging.info("setting load {}".format(value))
         request = self.create_generic_read_request(self.device_id, self.set_load_params["function"], self.set_load_params["register"], value)
-        await self.ble_manager.characteristic_write_value(request)
-        return True
+        self.ble_manager.characteristic_write_value(request)
 
     def parse_device_info(self, bs):
         data = {}

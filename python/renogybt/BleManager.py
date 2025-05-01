@@ -21,72 +21,51 @@ class BleManager:
 
     async def discover(self):
         mac_address = self.mac_address.upper()
-        logging.info("🔍 Starting discovery...")
+        logging.info("Starting discovery...")
         self.discovered_devices = await BleakScanner.discover(timeout=DISCOVERY_TIMEOUT)
-        logging.info("📊 Devices found: %s", len(self.discovered_devices))
+        logging.info("Devices found: %s", len(self.discovered_devices))
 
         for dev in self.discovered_devices:
             if dev.address != None and (dev.address.upper() == mac_address or (dev.name and dev.name.strip() == self.device_alias)):
-                logging.info(f"🔌 Found matching device {dev.name} => {dev.address}")
+                logging.info(f"Found matching device {dev.name} => {dev.address}")
                 self.device = dev
 
     async def connect(self):
-        if not self.device: return logging.error("🔴 No device connected!")
+        if not self.device: return logging.error("No device connected!")
 
         self.client = BleakClient(self.device)
         try:
             await self.client.connect()
-            logging.info(f"🔌 Client connection: {self.client.is_connected}")
-            if not self.client.is_connected: return logging.error("🔴 Unable to connect")
+            logging.info(f"Client connection: {self.client.is_connected}")
+            if not self.client.is_connected: return logging.error("Unable to connect")
 
             for service in self.client.services:
                 for characteristic in service.characteristics:
                     if characteristic.uuid == self.notify_char_uuid:
                         await self.client.start_notify(characteristic,  self.notification_callback)
-                        logging.info(f"🔌 subscribed to notification {characteristic.uuid}")
+                        logging.info(f"subscribed to notification {characteristic.uuid}")
                     if characteristic.uuid == self.write_char_uuid and service.uuid == self.write_service_uuid:
                         self.write_char_handle = characteristic.handle
-                        logging.info(f"🔌 found write characteristic {characteristic.uuid}, service {service.uuid}")
+                        logging.info(f"found write characteristic {characteristic.uuid}, service {service.uuid}")
 
         except Exception:
-            logging.error(f"🔴 Error connecting to device")
+            logging.error(f"Error connecting to device")
             self.connect_fail_callback(sys.exc_info())
 
     async def notification_callback(self, characteristic, data: bytearray):
-        logging.info("📊 notification_callback")
+        logging.info("notification_callback")
         await self.data_callback(data)
 
     async def characteristic_write_value(self, data):
         try:
-            if not self.client or not self.client.is_connected:
-                logging.error("🔴 Cannot write: client not connected")
-                return
-
-            logging.info(f'📊 writing to {self.write_char_uuid} {data}')
-            retry_count = 0
-            max_retries = 3
-
-            while retry_count < max_retries:
-                try:
-                    await self.client.write_gatt_char(self.write_char_handle, bytearray(data), response=False)
-                    logging.info('🟢 characteristic_write_value succeeded')
-                    # Success - exit retry loop
-                    break
-                except Exception as write_error:
-                    retry_count += 1
-                    if retry_count >= max_retries:
-                        raise write_error
-                    logging.warning(f'🟡 write_gatt_char retry {retry_count}/{max_retries}: {write_error}')
-                    # Add short delay between retries
-                    await asyncio.sleep(0.5)
-
-            # Add slightly longer delay after successful write to ensure device has time to process
-            await asyncio.sleep(1.0)
+            logging.info(f'writing to {self.write_char_uuid} {data}')
+            await self.client.write_gatt_char(self.write_char_handle, bytearray(data), response=False)
+            logging.info('characteristic_write_value succeeded')
+            await asyncio.sleep(0.5)
         except Exception as e:
-            logging.error(f'🔴 characteristic_write_value failed {e}')
-            raise e
+            logging.info(f'characteristic_write_value failed {e}')
 
     async def disconnect(self):
         if self.client and self.client.is_connected:
-            logging.info(f"🔌 Exit: Disconnecting device: {self.device.name} {self.device.address}")
+            logging.info(f"Exit: Disconnecting device: {self.device.name} {self.device.address}")
             await self.client.disconnect()

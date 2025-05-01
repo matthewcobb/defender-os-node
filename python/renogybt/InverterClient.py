@@ -16,8 +16,8 @@ CHARGING_STATE = {
 }
 
 class InverterClient(BaseClient):
-    def __init__(self, config, on_data_callback=None, on_error_callback=None):
-        super().__init__(config)
+    def __init__(self, client_config, on_data_callback=None, on_error_callback=None):
+        super().__init__(client_config)
         self.on_data_callback = on_data_callback
         self.on_error_callback = on_error_callback
         self.data = {}
