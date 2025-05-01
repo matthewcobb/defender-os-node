@@ -27,18 +27,49 @@ app.register_blueprint(sio_bp)
 # Add CORS middleware
 app.after_request(add_cors_headers)
 
+# Store background tasks for better management
+background_tasks = []
+
 # Connect to Renogy devices on startup
 @app.before_serving
 async def before_serving():
     """Setup tasks before the server starts"""
+    # Configure asyncio for better performance on resource-constrained systems
+    import asyncio
+    try:
+        # Increase event loop slow callback duration warning threshold
+        # to account for Bluetooth operations which may be slow on Raspberry Pi
+        loop = asyncio.get_event_loop()
+        loop.slow_callback_duration = 2.0  # seconds (default is 0.1)
+        log.info(f"Set slow callback duration warning threshold to 2.0 seconds")
+
+        # On Linux/Raspberry Pi, try to optimize further
+        import platform
+        if platform.system() == 'Linux':
+            # Try to set a higher priority for the main process
+            import os
+            try:
+                os.nice(-10)  # Higher priority (lower nice value) for main process
+                log.info("Set main process to higher priority")
+            except:
+                log.warning("Could not set process priority")
+    except Exception as e:
+        log.warning(f"Could not configure event loop: {e}")
+
+    log.info("Starting background tasks...")
+
     # Start Renogy service as a background task
-    app.add_background_task(monitor_renogybt)
+    renogy_task = app.add_background_task(monitor_renogybt)
+    background_tasks.append(renogy_task)
+    log.info("Renogy monitoring task started")
 
     # Initialize the GPIO state in the Socket.IO controller
     update_last_state('gpio', {'is_reversing': is_reversing})
 
     # Start reverse light monitoring in background
-    app.add_background_task(monitor_reverse_light)
+    gpio_task = app.add_background_task(monitor_reverse_light)
+    background_tasks.append(gpio_task)
+    log.info("GPIO monitoring task started")
 
     log.info("Server startup complete")
 
@@ -48,7 +79,18 @@ async def after_serving():
     """Cleanup tasks after the server stops"""
     log.info("Server shutting down, cleaning up resources...")
 
-    # Stop the Renogy service
+    # Cancel all background tasks
+    log.info(f"Cancelling {len(background_tasks)} background tasks...")
+    for task in background_tasks:
+        if not task.cancelled():
+            task.cancel()
+            try:
+                await task
+            except:
+                pass  # Task was cancelled, ignore exceptions
+
+    # Stop the Renogy service explicitly
+    log.info("Stopping Renogy service...")
     await stop_renogybt()
 
     log.info("Cleanup complete")
