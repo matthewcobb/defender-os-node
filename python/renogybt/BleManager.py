@@ -86,9 +86,15 @@ class BleManager:
 
                 # Connected successfully
                 logging.info(f"✅ Connected to {self.device_alias}")
-                self.is_connected = True
+
+                # Ensure service discovery is complete
+                # This is critical on Raspberry Pi to prevent 'Service Discovery not performed' errors
+                await asyncio.sleep(1)  # Small delay to ensure service discovery completes
 
                 # Setup notifications and find write characteristic
+                self.is_connected = True
+                service_discovery_complete = False
+
                 for service in self.client.services:
                     for characteristic in service.characteristics:
                         if characteristic.uuid == self.notify_char_uuid:
@@ -96,7 +102,17 @@ class BleManager:
                             logging.info(f"Subscribed to notification {characteristic.uuid}")
                         if characteristic.uuid == self.write_char_uuid and service.uuid == self.write_service_uuid:
                             self.write_char_handle = characteristic.handle
+                            service_discovery_complete = True
                             logging.info(f"Found write characteristic {characteristic.uuid}")
+
+                # Verify that service discovery succeeded
+                if not service_discovery_complete:
+                    logging.error(f"Service discovery failed - could not find write characteristic")
+                    self.is_connected = False
+                    attempts += 1
+                    await asyncio.sleep(retry_interval)
+                    retry_interval = min(retry_interval * 1.5, 30)
+                    continue
 
                 return True
 
@@ -113,6 +129,20 @@ class BleManager:
         logging.error(f"Failed to connect to {self.device_alias} after {attempts} attempts")
         return False
 
+    async def ensure_connected(self):
+        """Ensure the device is connected and service discovery is complete"""
+        if not self.is_connected or not self.client or not self.client.is_connected:
+            logging.warning(f"Device {self.device_alias} not connected, attempting to reconnect")
+            return await self.connect_with_retry(3)
+
+        # Check if service discovery is complete
+        if self.write_char_handle is None:
+            logging.warning(f"Service discovery not complete for {self.device_alias}, attempting to reconnect")
+            await self.disconnect()  # Disconnect first
+            return await self.connect_with_retry(3)
+
+        return True
+
     async def notification_callback(self, characteristic, data: bytearray):
         """Handle incoming notifications from BLE device"""
         if self.data_callback:
@@ -124,13 +154,43 @@ class BleManager:
             logging.warning(f"Cannot write to {self.device_alias}: not connected")
             return False
 
-        try:
-            await self.client.write_gatt_char(self.write_char_handle, bytearray(data), response=False)
-            return True
-        except Exception as e:
-            logging.error(f"Write failed: {e}")
-            self.is_connected = False
-            return False
+        # Verify write characteristic is available
+        if self.write_char_handle is None:
+            logging.error(f"Cannot write to {self.device_alias}: Service Discovery not complete")
+            # Try to reconnect rather than immediately failing
+            if not await self.ensure_connected():
+                self.is_connected = False
+                return False
+
+        # Maximum retry attempts for writing
+        max_retries = 2
+        retry_count = 0
+
+        while retry_count <= max_retries:
+            try:
+                await self.client.write_gatt_char(self.write_char_handle, bytearray(data), response=False)
+                return True
+            except Exception as e:
+                retry_count += 1
+                error_msg = str(e)
+
+                # Check for service discovery error specifically
+                if "Service Discovery" in error_msg:
+                    logging.warning(f"Service discovery error, attempt {retry_count}/{max_retries}")
+
+                    # Try to reconnect
+                    if retry_count <= max_retries:
+                        await self.disconnect()
+                        if await self.connect_with_retry(1):  # Try once to reconnect
+                            continue  # If reconnected successfully, retry the write
+
+                if retry_count > max_retries:
+                    logging.error(f"Write failed after {max_retries} attempts: {e}")
+                    self.is_connected = False
+                    return False
+
+                # Wait before retrying
+                await asyncio.sleep(1)
 
     async def disconnect(self):
         """Disconnect from device"""

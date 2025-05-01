@@ -74,7 +74,7 @@ class RoverClient(BaseClient):
 
             # Check connection
             if not await self.ble_manager.ensure_connected():
-                logging.error("Cannot set load: device not connected")
+                logging.error("Cannot set load: device not connected or service discovery incomplete")
                 return False
 
             # Create request

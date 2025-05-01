@@ -109,24 +109,45 @@ class BaseClient:
     async def _polling_loop(self):
         """Internal polling loop for device data"""
         try:
-            while self.polling and self.ble_manager and self.ble_manager.is_connected:
+            while self.polling:
                 try:
+                    # Verify connection before reading
+                    if not self.ble_manager or not await self.ble_manager.ensure_connected():
+                        raise Exception("Device not connected properly")
+
                     await self._read_next_section()
-                    # Short delay between reads
-                    await asyncio.sleep(0.5)
+                    # Short delay between reads - longer on Raspberry Pi to prevent rapid reconnection issues
+                    await asyncio.sleep(0.8)
                 except Exception as e:
                     logging.error(f"Error in polling loop: {e}")
                     if self.on_error_callback:
                         await self.on_error_callback(self, str(e))
 
-                    # If we lost connection, try to reconnect
-                    if not self.ble_manager.is_connected:
+                    # If we lost connection or have service discovery issues, try to reconnect
+                    if not self.ble_manager or not self.ble_manager.is_connected:
                         logging.warning(f"Connection lost to {self.alias}, attempting to reconnect...")
+
+                        # Disconnect first if client exists but connection is broken
+                        if self.ble_manager and self.ble_manager.client:
+                            try:
+                                await self.ble_manager.disconnect()
+                                # Add a small delay before reconnecting to avoid RPi BLE stack issues
+                                await asyncio.sleep(2)
+                            except Exception as disconnect_error:
+                                logging.warning(f"Error during disconnect: {disconnect_error}")
+
+                        # Now try to reconnect with retry
                         success = await self.ble_manager.connect_with_retry(3)
                         if not success:
                             # If reconnect failed, stop polling
                             logging.error(f"Failed to reconnect to {self.alias}, stopping poll")
                             break
+                        else:
+                            # Successfully reconnected, continue polling
+                            logging.info(f"Successfully reconnected to {self.alias}")
+                            # Wait a bit more after reconnection before resuming polling
+                            await asyncio.sleep(2)
+                            continue
 
                 # Sleep between polling cycles
                 await asyncio.sleep(POLL_INTERVAL)
@@ -154,7 +175,16 @@ class BaseClient:
 
     async def _read_next_section(self):
         """Read the next section from the device"""
-        if not self.sections or not self.ble_manager or not self.ble_manager.is_connected:
+        if not self.sections:
+            return False
+
+        # First ensure connection and service discovery is complete
+        if not self.ble_manager:
+            return False
+
+        # Verify connection is established and service discovery is complete
+        if not await self.ble_manager.ensure_connected():
+            logging.warning(f"Cannot read from {self.alias}: connection issue")
             return False
 
         section = self.sections[self.section_index]
