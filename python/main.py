@@ -35,12 +35,9 @@ renogy_service = RenogyService()
 @app.before_serving
 async def before_serving():
     """Setup tasks before the server starts"""
-    # Start Renogy service async
+    # Start Renogy service
     log.info("Starting Renogy service...")
     renogy_service.start()
-
-    # Wait a bit for initial connections
-    await asyncio.sleep(2)
 
     # Add renogy_service to app context for access in other parts of the application
     app.renogy_service = renogy_service

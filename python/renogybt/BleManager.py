@@ -3,6 +3,7 @@ import logging
 from bleak import BleakClient, BleakScanner, BLEDevice
 
 DISCOVERY_TIMEOUT = 10  # max wait time to complete the bluetooth scanning (seconds)
+MAX_RETRIES = 5  # Maximum number of connection attempts before giving up
 
 class BleManager:
     def __init__(self, mac_address, alias, on_data, on_connect_fail, write_service_uuid, notify_char_uuid, write_char_uuid):
@@ -16,9 +17,7 @@ class BleManager:
         self.write_char_handle = None
         self.device = None
         self.client = None
-        self.discovered_devices = []
         self.is_connected = False
-        self.connection_lock = asyncio.Lock()
 
     async def discover(self):
         """Discover device with BleakScanner"""
@@ -27,7 +26,6 @@ class BleManager:
 
         try:
             self.discovered_devices = await BleakScanner.discover(timeout=DISCOVERY_TIMEOUT)
-            logging.info(f"Devices found: {len(self.discovered_devices)}")
 
             for dev in self.discovered_devices:
                 if dev.address and (dev.address.upper() == mac_address or (dev.name and dev.name.strip() == self.device_alias)):
@@ -35,35 +33,58 @@ class BleManager:
                     self.device = dev
                     return True
 
-            # Log potential devices if target not found
-            for dev in self.discovered_devices:
-                if dev.name and any(dev.name.startswith(prefix) for prefix in ['BT-TH', 'RNGRBP', 'BTRIC']):
-                    logging.info(f"Possible device found! ====> {dev.name} > [{dev.address}]")
-
+            logging.warning(f"Device not found: {self.device_alias}")
             return False
         except Exception as e:
             logging.error(f"Error during discovery: {e}")
             return False
 
-    async def connect(self):
-        """Connect to device with connection lock to prevent multiple connections"""
-        if not self.device:
-            logging.error("No device to connect to!")
-            return False
+    async def connect_with_retry(self, max_attempts=MAX_RETRIES):
+        """Connect to device with retries
 
-        # Use lock to prevent multiple simultaneous connection attempts
-        async with self.connection_lock:
-            if self.is_connected:
-                return True
+        Args:
+            max_attempts: Maximum number of connection attempts (0 = infinite)
 
+        Returns:
+            bool: True if successfully connected
+        """
+        if self.is_connected and self.client and self.client.is_connected:
+            return True
+
+        attempts = 0
+        retry_interval = 5  # Start with 5 seconds between retries
+
+        while max_attempts == 0 or attempts < max_attempts:
+            # Try discovery if needed
+            if not self.device and not await self.discover():
+                attempts += 1
+                logging.warning(f"Discovery failed, retrying in {retry_interval}s (attempt {attempts}/{max_attempts})")
+                await asyncio.sleep(retry_interval)
+                retry_interval = min(retry_interval * 1.5, 30)
+                continue
+
+            # Try to connect
             try:
+                logging.info(f"Connecting to {self.device_alias}...")
+
+                # Cleanup any previous client
+                if self.client:
+                    try:
+                        await self.client.disconnect()
+                    except:
+                        pass
+
                 self.client = BleakClient(self.device)
                 await self.client.connect()
 
                 if not self.client.is_connected:
-                    logging.error("Failed to connect")
-                    return False
+                    logging.warning(f"Connection to {self.device_alias} failed")
+                    attempts += 1
+                    await asyncio.sleep(retry_interval)
+                    retry_interval = min(retry_interval * 1.5, 30)
+                    continue
 
+                # Connected successfully
                 logging.info(f"✅ Connected to {self.device_alias}")
                 self.is_connected = True
 
@@ -80,10 +101,17 @@ class BleManager:
                 return True
 
             except Exception as e:
-                logging.error(f"Error connecting to device: {e}")
+                logging.error(f"Error connecting to {self.device_alias}: {e}")
                 if self.connect_fail_callback:
                     await self.connect_fail_callback(self, str(e))
-                return False
+
+                attempts += 1
+                logging.warning(f"Connection attempt {attempts}/{max_attempts} failed, retrying in {retry_interval}s")
+                await asyncio.sleep(retry_interval)
+                retry_interval = min(retry_interval * 1.5, 30)
+
+        logging.error(f"Failed to connect to {self.device_alias} after {attempts} attempts")
+        return False
 
     async def notification_callback(self, characteristic, data: bytearray):
         """Handle incoming notifications from BLE device"""
@@ -91,12 +119,10 @@ class BleManager:
             await self.data_callback(data)
 
     async def characteristic_write_value(self, data):
-        """Write data to characteristic with retry logic"""
+        """Write data to characteristic"""
         if not self.is_connected:
-            logging.warning("Cannot write: device not connected")
-            await self.connect()
-            if not self.is_connected:
-                return False
+            logging.warning(f"Cannot write to {self.device_alias}: not connected")
+            return False
 
         try:
             await self.client.write_gatt_char(self.write_char_handle, bytearray(data), response=False)
@@ -112,19 +138,9 @@ class BleManager:
             try:
                 logging.info(f"Disconnecting device: {self.device_alias}")
                 await self.client.disconnect()
-                self.is_connected = False
-                return True
             except Exception as e:
                 logging.error(f"Error disconnecting: {e}")
-                return False
-        return True
 
-    async def ensure_connected(self):
-        """Ensure device is connected, reconnect if needed"""
-        if not self.is_connected and self.device:
-            return await self.connect()
-        elif not self.device:
-            if await self.discover():
-                return await self.connect()
-            return False
+        self.is_connected = False
+        self.client = None
         return True

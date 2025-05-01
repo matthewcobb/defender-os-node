@@ -3,10 +3,9 @@ Service for handling Renogy device connections and data retrieval
 """
 import logging
 import asyncio
-from datetime import datetime
 from renogybt import RoverClient, BatteryClient, LipoModel
 from renogybt.DeviceManager import DeviceManager
-from config.settings import DCDC_CONFIG, BATTERY_CONFIG, POLL_INTERVAL
+from config.settings import DCDC_CONFIG, BATTERY_CONFIG
 from controllers.socketio_controller import emit_event
 
 logging.basicConfig(level=logging.INFO)
@@ -27,33 +26,39 @@ class RenogyService:
         self.data = {
             'rng_ctrl': None,
             'rng_batt': None,
-            'combined': None,
-            'last_update': None
+            'combined': None
         }
 
         self.running = False
         self.update_task = None
+        self.initialized = False
 
     async def initialize(self):
-        """Initialize all devices and start services"""
-        # Create DCDC client
-        dcdc_client = RoverClient(DCDC_CONFIG)
+        """Initialize all devices"""
+        if self.initialized:
+            return True
 
-        # Create Battery client
-        battery_client = BatteryClient(BATTERY_CONFIG)
+        # Create clients
+        try:
+            dcdc_client = RoverClient(DCDC_CONFIG)
+            battery_client = BatteryClient(BATTERY_CONFIG)
 
-        # Add clients to manager
-        await self.device_manager.add_device('dcdc', dcdc_client)
-        await self.device_manager.add_device('battery', battery_client)
+            # Add clients to manager
+            await self.device_manager.add_device('dcdc', dcdc_client)
+            await self.device_manager.add_device('battery', battery_client)
 
-        # Add data handler
-        self.device_manager.add_data_handler(self.on_device_data)
+            # Add data handler
+            self.device_manager.add_data_handler(self.on_device_data)
 
-        # Add error handler
-        self.device_manager.add_error_handler(self.on_device_error)
+            # Add error handler
+            self.device_manager.add_error_handler(self.on_device_error)
 
-        log.info("RenogyService initialized")
-        return True
+            log.info("RenogyService initialized")
+            self.initialized = True
+            return True
+        except Exception as e:
+            log.error(f"Error initializing RenogyService: {e}")
+            return False
 
     def start(self):
         """Start the Renogy service (non-blocking)"""
@@ -69,16 +74,37 @@ class RenogyService:
     async def _start_async(self):
         """Start the service asynchronously"""
         try:
-            # Initialize devices
-            await self.initialize()
+            # Initialize devices if not already done
+            if not self.initialized and not await self.initialize():
+                log.error("Failed to initialize Renogy service")
+                self.running = False
+                return
 
-            # Start the device manager
-            await self.device_manager.start()
+            # First, connect to all devices with retries
+            log.info("Connecting to all devices...")
+            max_attempts = 3
+            attempt = 0
 
-            # Create update loop task
+            while attempt < max_attempts:
+                if await self.device_manager.connect_all_devices():
+                    log.info("Successfully connected to all devices")
+                    break
+
+                attempt += 1
+                if attempt < max_attempts:
+                    log.warning(f"Not all devices connected, retrying... (attempt {attempt}/{max_attempts})")
+                    await asyncio.sleep(5)  # Wait before retrying
+                else:
+                    log.warning(f"Failed to connect all devices after {max_attempts} attempts, continuing anyway")
+
+            # Now start polling only connected devices
+            log.info("Starting polling...")
+            await self.device_manager.start_polling()
+
+            # Create update loop task for data processing
             self.update_task = asyncio.create_task(self._update_loop())
 
-            log.info("Renogy devices started successfully")
+            log.info("Renogy service started")
         except Exception as e:
             log.error(f"Error starting Renogy service: {e}")
             self.running = False
@@ -96,11 +122,10 @@ class RenogyService:
                     if combined_data and not combined_data.get('error'):
                         # Store for later retrieval
                         self.data['combined'] = combined_data
-                        self.data['last_update'] = datetime.now().isoformat()
 
                         # Emit to websocket clients
                         await emit_event('renogy', 'data_update', combined_data)
-                        log.debug("Emitted combined Renogy data update")
+                        log.debug("Emitted combined Renogy data")
             except Exception as e:
                 log.error(f"Error in update loop: {e}")
 
@@ -140,14 +165,6 @@ class RenogyService:
         """Handle device errors"""
         log.error(f"Device error ({device_key}): {error}")
 
-        # Emit error to frontend
-        error_data = {
-            'device_type': device_key,
-            'error': str(error),
-            'timestamp': datetime.now().isoformat()
-        }
-        await emit_event('renogy', 'error', error_data)
-
     def get_latest_data(self):
         """Get latest combined data"""
         return self.data.get('combined')
@@ -155,7 +172,6 @@ class RenogyService:
     def get_device_status(self):
         """Get status of all devices"""
         return {
-            'dcdc_connected': bool(self.data.get('rng_ctrl')),
-            'battery_connected': bool(self.data.get('rng_batt')),
-            'last_update': self.data.get('last_update')
+            'dcdc_connected': self.device_manager.is_device_connected('dcdc'),
+            'battery_connected': self.device_manager.is_device_connected('battery')
         }
