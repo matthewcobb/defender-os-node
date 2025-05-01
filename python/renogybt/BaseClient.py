@@ -41,7 +41,7 @@ class BaseClient:
 
     async def on_connect_fail(self, manager, error):
         """Handle connection failure"""
-        logging.error(f"Connection failed: {error}")
+        logging.error(f"❌ Connection failed: {error}")
         if self.on_error_callback:
             await self.on_error_callback(self, error)
 
@@ -51,7 +51,7 @@ class BaseClient:
         function_code = data[1]
         if function_code == READ_ERROR:
             error = f"Device reported error: {data.hex()}"
-            logging.error(error)
+            logging.error(f"⚠️ {error}")
             if self.on_error_callback:
                 await self.on_error_callback(self, error)
             return
@@ -63,7 +63,7 @@ class BaseClient:
                 if section.get('parser'):
                     section['parser'](data)
             except Exception as e:
-                logging.error(f"Error parsing data: {e}")
+                logging.error(f"⚠️ Error parsing data: {e}")
             finally:
                 # Trigger next section read if polling is active
                 if self.polling:
@@ -76,16 +76,16 @@ class BaseClient:
     async def start_polling(self):
         """Start polling the device for data updates"""
         if self.polling:
-            logging.warning(f"Already polling device: {self.alias}")
+            logging.warning(f"🔄 Already polling device: {self.alias}")
             return
 
         if not self.ble_manager or not self.ble_manager.is_connected:
-            logging.error(f"Cannot start polling: {self.alias} is not connected")
+            logging.error(f"❌ Cannot start polling: {self.alias} is not connected")
             return
 
         self.polling = True
         self.polling_task = asyncio.create_task(self._polling_loop())
-        logging.info(f"Started polling for {self.alias}")
+        logging.info(f"🔄 Started polling for {self.alias}")
 
     async def stop(self):
         """Stop polling and disconnect"""
@@ -103,7 +103,7 @@ class BaseClient:
         if self.ble_manager:
             await self.ble_manager.disconnect()
 
-        logging.info(f"Stopped {self.alias}")
+        logging.info(f"⏹️ Stopped {self.alias}")
         return True
 
     async def _polling_loop(self):
@@ -119,13 +119,13 @@ class BaseClient:
                     # Short delay between reads - longer on Raspberry Pi to prevent rapid reconnection issues
                     await asyncio.sleep(0.8)
                 except Exception as e:
-                    logging.error(f"Error in polling loop: {e}")
+                    logging.error(f"⚠️ Error in polling loop: {e}")
                     if self.on_error_callback:
                         await self.on_error_callback(self, str(e))
 
                     # If we lost connection or have service discovery issues, try to reconnect
                     if not self.ble_manager or not self.ble_manager.is_connected:
-                        logging.warning(f"Connection lost to {self.alias}, attempting to reconnect...")
+                        logging.warning(f"📵 Connection lost to {self.alias}, attempting to reconnect...")
 
                         # Disconnect first if client exists but connection is broken
                         if self.ble_manager and self.ble_manager.client:
@@ -134,17 +134,17 @@ class BaseClient:
                                 # Add a small delay before reconnecting to avoid RPi BLE stack issues
                                 await asyncio.sleep(2)
                             except Exception as disconnect_error:
-                                logging.warning(f"Error during disconnect: {disconnect_error}")
+                                logging.warning(f"⚠️ Error during disconnect: {disconnect_error}")
 
                         # Now try to reconnect with retry
                         success = await self.ble_manager.connect_with_retry(3)
                         if not success:
                             # If reconnect failed, stop polling
-                            logging.error(f"Failed to reconnect to {self.alias}, stopping poll")
+                            logging.error(f"❌ Failed to reconnect to {self.alias}, stopping poll")
                             break
                         else:
                             # Successfully reconnected, continue polling
-                            logging.info(f"Successfully reconnected to {self.alias}")
+                            logging.info(f"✅ Successfully reconnected to {self.alias}")
                             # Wait a bit more after reconnection before resuming polling
                             await asyncio.sleep(2)
                             continue
@@ -156,17 +156,17 @@ class BaseClient:
             if self.polling and (not self.ble_manager or not self.ble_manager.is_connected):
                 self.polling = False
                 error_msg = f"Polling stopped for {self.alias} due to connection loss"
-                logging.warning(error_msg)
+                logging.warning(f"⛔ {error_msg}")
 
                 # Notify the error callback about connection loss
                 if self.on_error_callback:
                     await self.on_error_callback(self, error_msg)
         except asyncio.CancelledError:
             # Normal cancellation
-            logging.info(f"Polling task cancelled for {self.alias}")
+            logging.info(f"⏹️ Polling task cancelled for {self.alias}")
             raise
         except Exception as e:
-            logging.error(f"Unexpected error in polling loop: {e}")
+            logging.error(f"❌ Unexpected error in polling loop: {e}")
             self.polling = False
 
             # Notify the error callback about the error
@@ -184,7 +184,7 @@ class BaseClient:
 
         # Verify connection is established and service discovery is complete
         if not await self.ble_manager.ensure_connected():
-            logging.warning(f"Cannot read from {self.alias}: connection issue")
+            logging.warning(f"📵 Cannot read from {self.alias}: connection issue")
             return False
 
         section = self.sections[self.section_index]

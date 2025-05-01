@@ -54,60 +54,60 @@ class RenogyService:
             # Add error handler
             self.device_manager.add_error_handler(self.on_device_error)
 
-            log.info("RenogyService initialized")
+            log.info("🚀 RenogyService initialized")
             self.initialized = True
             return True
         except Exception as e:
-            log.error(f"Error initializing RenogyService: {e}")
+            log.error(f"❌ Error initializing RenogyService: {e}")
             return False
 
     def start(self):
         """Start the Renogy service (non-blocking)"""
         if self.running:
-            log.warning("Renogy service already running")
+            log.warning("⚠️ Renogy service already running")
             return
 
         # Start in background
         self.running = True
         asyncio.create_task(self._start_async())
-        log.info("Renogy service starting in background")
+        log.info("▶️ Renogy service starting in background")
 
     async def _start_async(self):
         """Start the service asynchronously"""
         try:
             # Initialize devices if not already done
             if not self.initialized and not await self.initialize():
-                log.error("Failed to initialize Renogy service")
+                log.error("❌ Failed to initialize Renogy service")
                 self.running = False
                 return
 
             # First, connect to all devices with retries
-            log.info("Connecting to all devices...")
+            log.info("🔌 Connecting to all devices...")
             max_attempts = 3
             attempt = 0
 
             while attempt < max_attempts:
                 if await self.device_manager.connect_all_devices():
-                    log.info("Successfully connected to all devices")
+                    log.info("✅ Successfully connected to all devices")
                     break
 
                 attempt += 1
                 if attempt < max_attempts:
-                    log.warning(f"Not all devices connected, retrying... (attempt {attempt}/{max_attempts})")
+                    log.warning(f"🔄 Not all devices connected, retrying... (attempt {attempt}/{max_attempts})")
                     await asyncio.sleep(5)  # Wait before retrying
                 else:
-                    log.warning(f"Failed to connect all devices after {max_attempts} attempts, continuing anyway")
+                    log.warning(f"⚠️ Failed to connect all devices after {max_attempts} attempts, continuing anyway")
 
             # Now start polling only connected devices
-            log.info("Starting polling...")
+            log.info("📊 Starting polling...")
             await self.device_manager.start_polling()
 
             # Create update loop task for data processing
             self.update_task = asyncio.create_task(self._update_loop())
 
-            log.info("Renogy service started")
+            log.info("✅ Renogy service started")
         except Exception as e:
-            log.error(f"Error starting Renogy service: {e}")
+            log.error(f"❌ Error starting Renogy service: {e}")
             self.running = False
 
     async def _update_loop(self):
@@ -130,14 +130,14 @@ class RenogyService:
 
                         # Emit to websocket clients
                         await emit_event('renogy', 'data_update', combined_data)
-                        log.debug("Emitted combined Renogy data")
+                        log.debug("📡 Emitted combined Renogy data")
                 elif not dcdc_connected or not battery_connected:
                     # Log which devices are disconnected
-                    log.debug(f"Skipping update - disconnected devices: " +
+                    log.debug(f"📵 Skipping update - disconnected devices: " +
                               (f"DCDC, " if not dcdc_connected else "") +
                               (f"Battery" if not battery_connected else ""))
             except Exception as e:
-                log.error(f"Error in update loop: {e}")
+                log.error(f"❌ Error in update loop: {e}")
 
             # Wait before checking again
             await asyncio.sleep(2)
@@ -160,20 +160,20 @@ class RenogyService:
         # Stop device manager
         await self.device_manager.stop()
 
-        log.info("Renogy service stopped")
+        log.info("⏹️ Renogy service stopped")
 
     async def on_device_data(self, device_key, device, data):
         """Handle data from devices"""
         if device_key == 'dcdc':
             self.data['rng_ctrl'] = data
-            log.debug(f"Received data from DCDC device")
+            log.debug(f"📥 Received data from DCDC device")
         elif device_key == 'battery':
             self.data['rng_batt'] = data
-            log.debug(f"Received data from Battery device")
+            log.debug(f"📥 Received data from Battery device")
 
     async def on_device_error(self, device_key, device, error):
         """Handle device errors"""
-        log.error(f"Device error ({device_key}): {error}")
+        log.error(f"⚠️ Device error ({device_key}): {error}")
 
         # Emit error event to websocket clients
         await emit_event('renogy', 'error', {

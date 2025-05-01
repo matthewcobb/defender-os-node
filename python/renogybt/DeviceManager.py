@@ -31,37 +31,37 @@ class DeviceManager:
             bool: True if all devices connected successfully
         """
         if not self.devices:
-            logging.warning("No devices to connect")
+            logging.warning("🔍 No devices to connect")
             return False
 
         if self.connecting:
-            logging.info("Already connecting devices")
+            logging.info("⏳ Already connecting devices")
             return False
 
         self.connecting = True
 
         try:
-            logging.info(f"Connecting {len(self.devices)} devices...")
+            logging.info(f"🔌 Connecting {len(self.devices)} devices...")
 
             # Try to connect each device sequentially with retry
             all_connected = True
             for device_key, device in self.devices.items():
                 if not device.ble_manager:
-                    logging.error(f"Device {device_key} has no BLE manager")
+                    logging.error(f"❌ Device {device_key} has no BLE manager")
                     all_connected = False
                     continue
 
-                logging.info(f"Connecting device: {device_key}")
+                logging.info(f"🔄 Connecting device: {device_key}")
                 if not await device.ble_manager.connect_with_retry(max_attempts):
-                    logging.warning(f"Failed to connect to {device_key}")
+                    logging.warning(f"❗ Failed to connect to {device_key}")
                     all_connected = False
                 else:
-                    logging.info(f"Device {device_key} connected successfully")
+                    logging.info(f"✅ Device {device_key} connected successfully")
 
             if all_connected:
-                logging.info(f"All devices connected successfully")
+                logging.info(f"✅ All devices connected successfully")
             else:
-                logging.warning(f"Not all devices connected")
+                logging.warning(f"⚠️ Not all devices connected")
 
             return all_connected
         finally:
@@ -75,18 +75,18 @@ class DeviceManager:
         for device_key, device in self.devices.items():
             if device.ble_manager and device.ble_manager.is_connected:
                 connected_devices.append((device_key, device))
-                logging.info(f"Device ready for polling: {device_key}")
+                logging.info(f"🟢 Device ready for polling: {device_key}")
             else:
-                logging.warning(f"Cannot start polling for {device_key}: not connected")
+                logging.warning(f"🔴 Cannot start polling for {device_key}: not connected")
 
         if not connected_devices:
-            logging.warning("No connected devices to poll")
+            logging.warning("⚠️ No connected devices to poll")
             return
 
         # Start polling devices one at a time with a delay between each
-        logging.info(f"Starting sequential polling for {len(connected_devices)} devices")
+        logging.info(f"🔄 Starting sequential polling for {len(connected_devices)} devices")
         for idx, (device_key, device) in enumerate(connected_devices):
-            logging.info(f"Starting polling for device: {device_key}")
+            logging.info(f"📊 Starting polling for device: {device_key}")
             await device.start_polling()
 
             # Add a delay between starting polling for each device
@@ -94,7 +94,7 @@ class DeviceManager:
             if idx < len(connected_devices) - 1:  # Don't sleep after the last device
                 await asyncio.sleep(2)
 
-        logging.info(f"Started polling for all {len(connected_devices)} devices")
+        logging.info(f"✅ Started polling for all {len(connected_devices)} devices")
 
     async def stop(self):
         """Stop all devices"""
@@ -105,7 +105,7 @@ class DeviceManager:
         # Wait for all devices to stop
         if stop_tasks:
             await asyncio.gather(*stop_tasks, return_exceptions=True)
-            logging.info("All devices stopped")
+            logging.info("⏹️ All devices stopped")
         return True
 
     def add_data_handler(self, handler):
