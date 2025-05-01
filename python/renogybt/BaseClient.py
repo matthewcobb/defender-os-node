@@ -100,6 +100,7 @@ class BaseClient:
         logging.info("on_read_operation_complete")
         self.data['__device'] = self.alias
         self.data['__client'] = self.__class__.__name__
+        logging.info(f"data: {self.data}")
         self.__safe_callback(self.on_data_callback, self.data)
 
     def on_read_timeout(self):

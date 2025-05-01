@@ -3,7 +3,7 @@ Main application entry point
 """
 import logging
 import asyncio
-from quart import Quart
+from quart import Quart, jsonify
 import socketio
 from controllers.system_controller import system_bp
 from controllers.gpio_controller import gpio_bp, monitor_reverse_light, is_reversing

@@ -3,6 +3,7 @@ Service for handling Renogy device connections and data retrieval
 """
 import logging
 import asyncio
+import threading
 from datetime import datetime
 from renogybt import RoverClient, BatteryClient, LipoModel, Utils
 from config.settings import DCDC_CONFIG, BATTERY_CONFIG
@@ -12,8 +13,10 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 class RenogyService:
+    """Async-compatible wrapper for Renogy services that runs clients in a separate thread"""
+
     def __init__(self):
-        # Initialize clients with correct callback registration
+        """Initialize the service"""
         self.dcdc_client = RoverClient(
             DCDC_CONFIG,
             on_data_callback=self.on_data_received,
@@ -31,18 +34,56 @@ class RenogyService:
             'rng_batt': None,
             'combined': None
         }
+        self.thread = None
+        self.running = False
 
     def start(self):
-        """Start both Renogy clients"""
-        self.dcdc_client.start()
-        self.battery_client.start()
-        log.info("Renogy service started")
+        """Start the Renogy clients in a separate thread to avoid event loop conflicts"""
+        if self.running:
+            log.warning("Renogy service already running")
+            return
+
+        self.running = True
+
+        # Create and start a thread for the clients to run in their own event loop
+        self.thread = threading.Thread(target=self._run_clients)
+        self.thread.daemon = True  # Allow the thread to be terminated when the app exits
+        self.thread.start()
+
+        log.info("Renogy service thread started")
+
+    def _run_clients(self):
+        """Run clients in a dedicated thread with their own event loop"""
+        try:
+            # Create an event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+            # Start both clients
+            self.dcdc_client.start()
+            self.battery_client.start()
+
+            log.info("Renogy clients started in separate thread")
+        except Exception as e:
+            log.error(f"Error in Renogy thread: {e}")
+            self.running = False
 
     def stop(self):
-        """Stop both Renogy clients"""
-        self.dcdc_client.stop()
-        self.battery_client.stop()
-        log.info("Renogy service stopped")
+        """Stop the Renogy clients"""
+        if not self.running:
+            return
+
+        self.running = False
+
+        # Run stop operations in the thread's event loop
+        try:
+            # These stop operations will run in the client's own event loop
+            self.dcdc_client.stop()
+            self.battery_client.stop()
+
+            log.info("Renogy clients stopped")
+        except Exception as e:
+            log.error(f"Error stopping Renogy clients: {e}")
 
     def on_data_received(self, client, data):
         """Callback when data is received from either client"""
