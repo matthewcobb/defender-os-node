@@ -9,7 +9,7 @@ from controllers.system_controller import system_bp
 from controllers.gpio_controller import gpio_bp, monitor_reverse_light, is_reversing
 from controllers.socketio_controller import sio, sio_bp, update_last_state
 from utils.middleware import add_cors_headers
-from services.renogy_service import RenogyService
+from services.renogy_simple_service import RenogySimpleService
 from config.settings import DEBUG, HOST, PORT
 
 # Configure logging
@@ -29,7 +29,7 @@ app.register_blueprint(sio_bp)
 app.after_request(add_cors_headers)
 
 # Create global Renogy service instance for app access
-renogy_service = RenogyService()
+renogy_service = RenogySimpleService()
 
 # Connect to Renogy devices on startup
 @app.before_serving
@@ -64,15 +64,3 @@ async def after_serving():
 # Create the final ASGI application for gunicorn to use
 # This must be named 'application' to match your gunicorn configuration
 application = socketio.ASGIApp(sio, app)
-
-# Route to get current Renogy data
-@app.route('/api/renogy/status')
-async def renogy_status():
-    """Return current status of Renogy devices"""
-    return jsonify(renogy_service.get_device_status())
-
-@app.route('/api/renogy/data')
-async def renogy_data():
-    """Return latest Renogy data"""
-    data = renogy_service.get_latest_data() or {'error': 'No data available yet'}
-    return jsonify(data)
