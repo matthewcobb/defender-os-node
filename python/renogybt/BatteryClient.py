@@ -1,3 +1,4 @@
+import logging
 from .BaseClient import BaseClient
 from .Utils import bytes_to_int, format_temperature
 from config.settings import TEMPERATURE_UNIT
@@ -10,9 +11,8 @@ FUNCTION = {
 
 class BatteryClient(BaseClient):
     def __init__(self, client_config, on_data_callback=None, on_error_callback=None):
-        super().__init__(client_config)
-        self.on_data_callback = on_data_callback
-        self.on_error_callback = on_error_callback
+        """Initialize the Battery client for Renogy LFP batteries"""
+        super().__init__(client_config, on_data_callback, on_error_callback)
         self.data = {}
         self.sections = [
             {'register': 5000, 'words': 17, 'parser': self.parse_cell_volt_info},
@@ -21,8 +21,10 @@ class BatteryClient(BaseClient):
             {'register': 5122, 'words': 8, 'parser': self.parse_device_info},
             {'register': 5223, 'words': 1, 'parser': self.parse_device_address}
         ]
+        logging.info(f"BatteryClient initialized with {len(self.sections)} sections")
 
     def parse_cell_volt_info(self, bs):
+        """Parse individual cell voltage information"""
         data = {}
         data['function'] = FUNCTION.get(bytes_to_int(bs, 1, 1))
         data['cell_count'] = bytes_to_int(bs, 3, 2)
@@ -31,6 +33,7 @@ class BatteryClient(BaseClient):
         self.data.update(data)
 
     def parse_cell_temp_info(self, bs):
+        """Parse temperature sensor information"""
         data = {}
         data['function'] = FUNCTION.get(bytes_to_int(bs, 1, 1))
         data['sensor_count'] = bytes_to_int(bs, 3, 2)
@@ -40,6 +43,7 @@ class BatteryClient(BaseClient):
         self.data.update(data)
 
     def parse_battery_info(self, bs):
+        """Parse battery status information"""
         data = {}
         data['function'] = FUNCTION.get(bytes_to_int(bs, 1, 1))
         data['current'] = bytes_to_int(bs, 3, 2, True, scale = 0.01)
@@ -49,12 +53,14 @@ class BatteryClient(BaseClient):
         self.data.update(data)
 
     def parse_device_info(self, bs):
+        """Parse device model information"""
         data = {}
         data['function'] = FUNCTION.get(bytes_to_int(bs, 1, 1))
         data['model'] = (bs[3:19]).decode('utf-8').rstrip('\x00')
         self.data.update(data)
 
     def parse_device_address(self, bs):
+        """Parse device address/ID"""
         data = {}
         data['device_id'] = bytes_to_int(bs, 3, 2)
         self.data.update(data)

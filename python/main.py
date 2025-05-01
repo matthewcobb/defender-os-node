@@ -35,8 +35,12 @@ renogy_service = RenogyService()
 @app.before_serving
 async def before_serving():
     """Setup tasks before the server starts"""
-    # Start Renogy service
+    # Start Renogy service async
+    log.info("Starting Renogy service...")
     renogy_service.start()
+
+    # Wait a bit for initial connections
+    await asyncio.sleep(2)
 
     # Add renogy_service to app context for access in other parts of the application
     app.renogy_service = renogy_service
@@ -56,10 +60,22 @@ async def after_serving():
     log.info("Server shutting down, cleaning up resources...")
 
     # Stop the Renogy service
-    renogy_service.stop()
+    await renogy_service.stop()
 
     log.info("Cleanup complete")
 
 # Create the final ASGI application for gunicorn to use
 # This must be named 'application' to match your gunicorn configuration
 application = socketio.ASGIApp(sio, app)
+
+# Route to get current Renogy data
+@app.route('/api/renogy/status')
+async def renogy_status():
+    """Return current status of Renogy devices"""
+    return jsonify(renogy_service.get_device_status())
+
+@app.route('/api/renogy/data')
+async def renogy_data():
+    """Return latest Renogy data"""
+    data = renogy_service.get_latest_data() or {'error': 'No data available yet'}
+    return jsonify(data)

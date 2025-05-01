@@ -1,16 +1,38 @@
 import logging
 import math
+from typing import Dict, Any
 
 class LipoModel:
-    def __init__(self, device_data):
-        self.dcdc = device_data['rng_ctrl']
-        self.batt = device_data['rng_batt']
+    def __init__(self, device_data=None):
+        """
+        Initialize the LipoModel with either device data dictionary or empty model
+        """
+        self.dcdc = {}
+        self.batt = {}
         self.data = {}
+
+        # Set data if provided
+        if device_data:
+            self.update_data(device_data)
+
         # Battery characteristics
         self.charge_efficiency = 0.9  # Typical LiPo charging efficiency
         self.temperature_factor = 1.0  # Default temperature factor
 
+    def update_data(self, device_data: Dict[str, Any]):
+        """Update model with device data from the device manager"""
+        self.dcdc = device_data.get('rng_ctrl', {})
+        self.batt = device_data.get('rng_batt', {})
+
+    def has_required_data(self):
+        """Check if model has the required data to calculate metrics"""
+        return bool(self.dcdc and self.batt)
+
     def estimate_lipo_charging_time_cccv(self):
+        """Calculate estimated time to full charge using CCCV charging model"""
+        if not self.has_required_data():
+            return "Insufficient data"
+
         # Use available properties from BatteryClient
         current_voltage = self.batt.get('voltage', 0)
         remaining_charge = self.batt.get('remaining_charge', 0)
@@ -107,6 +129,10 @@ class LipoModel:
         return self.format_time(total_time)
 
     def estimate_lipo_discharging_time(self):
+        """Calculate estimated time to empty"""
+        if not self.has_required_data():
+            return "Insufficient data"
+
         # Use available properties from BatteryClient
         remaining_charge = self.batt.get('remaining_charge', 0)
         total_capacity = self.batt.get('capacity', 0)
@@ -169,6 +195,7 @@ class LipoModel:
         return self.format_time(time_left_hours)
 
     def format_time(self, hours):
+        """Format time in hours to readable string"""
         if hours < 0:
             return "0hrs"
 
@@ -185,6 +212,10 @@ class LipoModel:
 
     def calculate(self):
         """Calculate derived metrics from raw device data"""
+        if not self.has_required_data():
+            logging.warning("Missing required data for LipoModel calculation")
+            return {'error': 'Insufficient data'}
+
         try:
             # Fields to return to app
             self.data['time_remaining_to_charge'] = self.estimate_lipo_charging_time_cccv()
