@@ -42,8 +42,7 @@
         <div class="stat text-right">
           <h4>Current</h4>
           <p class="value">
-            <ArrowRight :size="24" class="icon" />
-            {{ renogyStore.data?.battery_current || '0' }}A
+            {{ renogyStore.data?.battery_power || '0' }}W
           </p>
         </div>
       </div>
@@ -52,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { BatteryMedium, Gauge, ArrowRight } from 'lucide-vue-next';
+import { BatteryMedium, Gauge } from 'lucide-vue-next';
 import LevelIndicator from './LevelIndicator.vue';
 import { useRenogyStore } from '../stores/renogyStore';
 

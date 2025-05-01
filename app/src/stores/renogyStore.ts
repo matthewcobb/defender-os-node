@@ -12,21 +12,22 @@ export interface RenogyData {
   battery_voltage?: number;
   battery_current?: number;
   battery_percentage?: number;
+  battery_power?: number;
   remaining_charge?: number;
   capacity?: number;
   time_remaining_to_charge?: string;
   time_remaining_to_empty?: string;
 
   // Solar data
-  pv_voltage?: number;
+  controller_temperature?: number;
   pv_current?: number;
   pv_power?: number;
-  controller_temperature?: number;
   load_power?: number;
+  load_current?: number;
   max_charging_power_today?: number;
   power_generation_today?: number;
   power_generation_total?: number;
-  charging_status?: string;
+  charger_status?: string;
 
   // Dynamic properties
   cell_count?: number;
@@ -47,11 +48,15 @@ export const useRenogyStore = defineStore('renogy', () => {
   });
 
   const batteryPercentage = computed(() => {
-    return Math.round(parseFloat(String(data.value?.remaining_charge ?? '0')));
+    return Math.round(parseFloat(String(data.value?.battery_percentage ?? '0')));
+  });
+
+  const dischargeWatts = computed(() => {
+    return Number((data.value?.battery_power ?? 0).toFixed(1));
   });
 
   const isCharging = computed(() => {
-    return (data.value?.battery_current ?? 0) > 0;
+    return (data.value?.battery_status === 'charging');
   });
 
   const cellCount = computed(() => {
@@ -155,6 +160,7 @@ export const useRenogyStore = defineStore('renogy', () => {
     // Getters
     isFullyCharged,
     batteryPercentage,
+    dischargeWatts,
     isCharging,
     cellCount,
     sensorCount,

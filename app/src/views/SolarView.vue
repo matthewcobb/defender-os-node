@@ -21,7 +21,7 @@
         <div class="stats-grid">
           <div class="stat">
             <h4>Current Status</h4>
-            <p class="value">{{ renogyStore.formatChargingStatus(renogyStore.data?.charging_status) }}</p>
+            <p class="value">{{ renogyStore.formatChargingStatus(renogyStore.data?.charger_status) }}</p>
           </div>
 
           <div class="stat">

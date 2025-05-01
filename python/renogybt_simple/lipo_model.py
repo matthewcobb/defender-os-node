@@ -18,7 +18,7 @@ class LipoModel:
         """Initialize the LipoModel"""
         # Battery characteristics
         self.charge_efficiency = 0.9  # Typical LiPo charging efficiency
-        self.max_depth_of_discharge = 0.85  # Maximum safe DoD for LiPo batteries
+        self.max_depth_of_discharge = 0.95  # Maximum safe DoD for LiPo batteries
 
     def calculate(self, dcdc_data: Dict[str, Any], battery_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -56,22 +56,23 @@ class LipoModel:
 
         # Add DCDC data
         combined['pv_power'] = dcdc_data.get('pv_power', 0)
+        combined['pv_current'] = dcdc_data.get('pv_current', 0)
         combined['load_power'] = dcdc_data.get('load_power', 0)
-        combined['battery_voltage'] = dcdc_data.get('battery_voltage', 0)
-        combined['battery_current'] = dcdc_data.get('battery_current', 0)
-        combined['battery_percentage'] = dcdc_data.get('battery_percentage', 0)
-        combined['charging_status'] = dcdc_data.get('charging_status', 'unknown')
+        combined['load_current'] = dcdc_data.get('load_current', 0)
+        combined['charger_status'] = dcdc_data.get('charging_status', 'unknown')
+        combined['power_generation_today'] = dcdc_data.get('power_generation_today', 0)
 
         # Add battery data
-        combined['remaining_charge'] = battery_data.get('remaining_charge', 0)
-        combined['capacity'] = battery_data.get('capacity', 0)
+        combined['battery_voltage'] = battery_data.get('voltage', 0)
+        combined['battery_current'] = battery_data.get('current', 0)
+        combined['battery_status'] = battery_data.get('status', 'unknown')
+        combined['battery_percentage'] = battery_data.get('remaining_charge', 0)
+        combined['battery_capacity'] = battery_data.get('capacity', 0)
+        combined['battery_power'] = battery_data.get('power', 0)
         combined['cell_count'] = battery_data.get('cell_count', 0)
         combined['sensor_count'] = battery_data.get('sensor_count', 0)
-        combined['model'] = battery_data.get('model', 'Unknown')
-        combined['device_id'] = battery_data.get('device_id', 0)
 
         # Add calculated battery metrics
-        combined['soc_percent'] = battery_data.get('soc_percent', 0)
         combined['min_cell_voltage'] = battery_data.get('min_cell_voltage', 0)
         combined['max_cell_voltage'] = battery_data.get('max_cell_voltage', 0)
         combined['cell_voltage_diff'] = battery_data.get('cell_voltage_diff', 0)
@@ -103,24 +104,29 @@ class LipoModel:
             str: Formatted time string
         """
         # Default response if not charging
-        if data.get('charging_status') == 'deactivated' or data.get('battery_current', 0) <= 0:
+        if data.get('battery_status') != "charging":
             return 'Not charging'
 
         # Get required values
-        remaining_charge = data.get('capacity', 0) - data.get('remaining_charge', 0)
-        charging_rate = data.get('battery_current', 0)
+        battery_capacity = data.get('battery_capacity', 0)  # Total capacity in Ah
+        battery_percentage = data.get('battery_percentage', 0)  # Current charge percentage (0-100)
+        battery_current = data.get('battery_current', 0)
+        charging_rate = abs(battery_current)  # Charging current in Amps
 
-        if charging_rate <= 0 or remaining_charge <= 0:
+        if charging_rate <= 0 or battery_capacity <= 0:
             return 'Already charged'
 
+        # Calculate remaining capacity needed to charge in Ah
+        remaining_capacity_ah = battery_capacity * (100 - battery_percentage) / 100
+
         # Apply charging efficiency factor
-        adjusted_remaining = remaining_charge / self.charge_efficiency
+        adjusted_remaining = remaining_capacity_ah / self.charge_efficiency
 
         # Apply temperature correction if available
         temperature_factor = self._get_temperature_factor(data)
         adjusted_remaining = adjusted_remaining * temperature_factor
 
-        # Calculate hours to charge and format
+        # Calculate hours to charge and format (capacity in Ah / current in A = time in hours)
         hours = adjusted_remaining / charging_rate
         return self._format_time(hours)
 
@@ -134,26 +140,31 @@ class LipoModel:
         Returns:
             str: Formatted time string
         """
-        # Check if discharging
-        if data.get('battery_current', 0) >= 0:
+        # Check if battery is discharging based on battery_status
+        if data.get('battery_status') != "discharging":
             return 'Infinity'  # Not discharging
 
         # Get required values
-        remaining_charge = data.get('remaining_charge', 0)
-        discharge_rate = abs(data.get('battery_current', 0))
+        battery_capacity = data.get('battery_capacity', 0)  # Total capacity in Ah
+        battery_percentage = data.get('battery_percentage', 0)  # Current charge percentage (0-100)
+        battery_current = data.get('battery_current', 0)
+        discharge_rate = abs(battery_current)  # Discharge current in Amps
 
-        if discharge_rate <= 0 or remaining_charge <= 0:
+        if discharge_rate <= 0 or battery_percentage <= 0 or battery_capacity <= 0:
             return '0hrs'
 
-        # Only use 85% of capacity as usable (depth of discharge limit)
-        usable_capacity = remaining_charge * self.max_depth_of_discharge
+        # Calculate remaining capacity in Ah
+        remaining_capacity_ah = (battery_capacity * battery_percentage) / 100
+
+        # Only use max_depth_of_discharge of capacity as usable
+        usable_capacity_ah = remaining_capacity_ah * self.max_depth_of_discharge
 
         # Apply temperature correction
         temperature_factor = self._get_temperature_factor(data)
-        usable_capacity = usable_capacity * temperature_factor
+        usable_capacity_ah = usable_capacity_ah * temperature_factor
 
-        # Calculate hours to discharge and format
-        hours = usable_capacity / discharge_rate
+        # Calculate hours to discharge and format (capacity in Ah / current in A = time in hours)
+        hours = usable_capacity_ah / discharge_rate
         return self._format_time(hours)
 
     def _get_temperature_factor(self, data: Dict[str, Any]) -> float:

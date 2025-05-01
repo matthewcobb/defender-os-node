@@ -168,6 +168,7 @@ class RenogySimpleService:
 
     async def on_device_data(self, device_key: str, device: Any, data: Dict[str, Any]) -> None:
         """Handle data from devices"""
+        log.info(f"📥 Received data from {device_key} device: {data}")
         if device_key == 'dcdc':
             self.data['dcdc'] = data
             log.debug(f"📥 Received data from DCDC device")
