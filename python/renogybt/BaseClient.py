@@ -210,8 +210,7 @@ class BaseClient:
         section_info = f"register={self.sections[index]['register']}, words={self.sections[index]['words']}"
         logging.info(f"📊 Reading section {index}/{len(self.sections)-1} from {self.client_config.get('alias')}: {section_info}")
 
-        # Get a reference to the current event loop - important for compatibility with Quart
-        loop = asyncio.get_running_loop()
+        loop = asyncio.get_event_loop()
         self.read_timeout = loop.call_later(READ_TIMEOUT, self.on_read_timeout)
         logging.info(f"⏱️ Set read timeout of {READ_TIMEOUT} seconds")
 

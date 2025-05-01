@@ -282,57 +282,11 @@ renogy_service = RenogyService()
 # Export a function to get the main service coroutine for use with app.add_background_task
 async def monitor_renogybt():
     """Main service coroutine - for use with app.add_background_task"""
-    try:
-        log.info("📱 Starting Renogy monitoring in background task")
-        # Set lower task priority if possible
-        try:
-            import os
-            if hasattr(os, 'nice'):
-                os.nice(10)  # Lower priority on Unix systems
-                log.info("📱 Set background task to lower CPU priority")
-        except Exception as e:
-            log.warning(f"⚠️ Could not set task priority: {e}")
-
-        # Configure asyncio for better performance
-        import asyncio
-        try:
-            # Increase the number of simultaneous connections
-            # This can help with Bluetooth stability
-            if platform.system() == 'Linux':
-                import resource
-                # Increase the limit for number of open files
-                resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))
-                log.info("📱 Increased file descriptor limit for better asyncio performance")
-        except Exception as e:
-            log.warning(f"⚠️ Could not configure resource limits: {e}")
-
-        # Run with proper exception handling
-        await renogy_service.start()
-    except asyncio.CancelledError:
-        log.info("📱 Renogy monitoring task was cancelled")
-        await renogy_service.stop()
-    except Exception as e:
-        log.error(f"❌ Unhandled exception in Renogy monitoring task: {e}")
-        import traceback
-        log.error(f"Traceback: {traceback.format_exc()}")
-        # Try to stop cleanly
-        try:
-            await renogy_service.stop()
-        except:
-            pass
-        # Restart after a delay
-        log.info("⏱️ Will restart Renogy monitoring in 10 seconds...")
-        await asyncio.sleep(10)
-        asyncio.create_task(monitor_renogybt())  # Restart the task
+    await renogy_service.start()
 
 async def stop_renogybt():
     """Stop the service - used by app shutdown"""
-    log.info("📱 Stopping Renogy monitoring service")
-    try:
-        await renogy_service.stop()
-        log.info("✅ Renogy service stopped successfully")
-    except Exception as e:
-        log.error(f"❌ Error stopping Renogy service: {e}")
+    await renogy_service.stop()
 
 def get_service():
     """Get the Renogy service instance"""
