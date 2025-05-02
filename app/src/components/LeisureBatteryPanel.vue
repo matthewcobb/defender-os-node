@@ -40,7 +40,7 @@
           </div>
         </div>
         <div class="stat text-right">
-          <h4>Current</h4>
+          <h4>{{ renogyStore.data?.battery_status || 'Unknown' }}</h4>
           <p class="value">
             {{ renogyStore.data?.battery_power || '0' }}W
           </p>

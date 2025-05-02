@@ -67,6 +67,10 @@ export const useRenogyStore = defineStore('renogy', () => {
     return data.value?.sensor_count ?? 0;
   });
 
+  const currentPowerOutput = computed(() => {
+    return Math.abs((data.value?.load_power ?? 0) - (data.value?.battery_power ?? 0));
+  });
+
   const solarPowerPercentage = computed(() => {
     const currentPower = data.value?.pv_power || 0;
     const maxPower = 200; // Supply on roof
@@ -162,6 +166,7 @@ export const useRenogyStore = defineStore('renogy', () => {
     batteryPercentage,
     dischargeWatts,
     isCharging,
+    currentPowerOutput,
     cellCount,
     sensorCount,
     solarPowerPercentage,
