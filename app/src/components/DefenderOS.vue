@@ -16,7 +16,11 @@
       </router-link>
     </nav>
     <main class="content">
-      <router-view></router-view>
+      <router-view v-slot="{ Component, route }">
+        <transition :name="transitionName">
+          <component :is="Component" :key="route.path" />
+        </transition>
+      </router-view>
     </main>
   </div>
 </template>
@@ -24,6 +28,40 @@
 <script setup lang="ts">
 import TopBar from './TopBar.vue';
 import { CarFront, Bolt, Info, Video } from 'lucide-vue-next';
+import { useRoute } from 'vue-router';
+import { watch, ref, computed } from 'vue';
+
+// Define tab routes in order of appearance in the UI
+const tabRoutes = ['/home', '/settings', '/reverse', '/about'];
+
+// Track navigation for transitions
+const route = useRoute();
+const previousPath = ref('');
+
+// Determine transition direction based on navigation
+const transitionName = computed(() => {
+  // If we don't have a previous path, just fade
+  if (!previousPath.value) {
+    return;
+  }
+
+  // Find indices in tab routes
+  const currentIndex = tabRoutes.indexOf(route.path);
+  const previousIndex = tabRoutes.indexOf(previousPath.value);
+
+  // Only apply directional transitions for tab navigation
+  if (currentIndex >= 0 && previousIndex >= 0) {
+    return currentIndex > previousIndex ? 'nav-next' : 'nav-prev';
+  }
+});
+
+// Track route changes to determine direction
+watch(() => route.path, (_, oldPath) => {
+  if (oldPath) {
+    previousPath.value = oldPath;
+  }
+}, { immediate: true });
+
 // DefenderOS component serves as a container for various subpages
 </script>
 
@@ -102,12 +140,8 @@ import { CarFront, Bolt, Info, Video } from 'lucide-vue-next';
 }
 
 .content {
-  padding: 0.5rem;
   width: 100%;
   height: calc(100vh - var(--top-bar-height)); /* Fills the remaining vertical space */
-  overflow-y: auto;
-  overflow-x: hidden;
-  box-sizing: border-box;
-  padding-bottom: 5rem;
+  position: relative;
 }
 </style>

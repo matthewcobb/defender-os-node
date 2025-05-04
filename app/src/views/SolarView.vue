@@ -1,67 +1,69 @@
 <template>
-  <div class="solar-view">
-    <FullScreenDisplay
-      :startFullscreen="true"
-      :disableCollapse="true"
-      :padding="true"
-      @close="closeView"
-    >
-      <div class="panel-header">
-        <h1>Solar Details</h1>
-      </div>
+  <transition name="fullscreen">
+    <div class="solar-view">
+      <FullScreenDisplay
+        :startFullscreen="true"
+        :disableCollapse="true"
+        :padding="true"
+        @close="closeView"
+      >
+        <div class="panel-header">
+          <h1>Solar Details</h1>
+        </div>
 
-      <div v-if="!renogyStore.devicesReady" class="error-state">
-        <p>Connecting...</p>
-      </div>
-      <div v-else class="solar-data">
-        <LevelIndicator :percentage="renogyStore.solarPowerPercentage" type="solar">
-          {{ renogyStore.data?.pv_power || '0' }}W
-        </LevelIndicator>
+        <div v-if="!renogyStore.devicesReady" class="error-state">
+          <p>Connecting...</p>
+        </div>
+        <div v-else class="solar-data">
+          <LevelIndicator :percentage="renogyStore.solarPowerPercentage" type="solar">
+            {{ renogyStore.data?.pv_power || '0' }}W
+          </LevelIndicator>
 
-        <div class="stats-grid">
-          <div class="stat">
-            <h4>Current Status</h4>
-            <p class="value">{{ renogyStore.formatChargingStatus(renogyStore.data?.charger_status) }}</p>
-          </div>
+          <div class="stats-grid">
+            <div class="stat">
+              <h4>Current Status</h4>
+              <p class="value">{{ renogyStore.formatChargingStatus(renogyStore.data?.charger_status) }}</p>
+            </div>
 
-          <div class="stat">
-            <h4>PV Voltage</h4>
-            <p class="value">{{ renogyStore.data?.pv_voltage || '0' }}V</p>
-          </div>
+            <div class="stat">
+              <h4>PV Voltage</h4>
+              <p class="value">{{ renogyStore.data?.pv_voltage || '0' }}V</p>
+            </div>
 
-          <div class="stat">
-            <h4>PV Current</h4>
-            <p class="value">{{ renogyStore.data?.pv_current || '0' }}A</p>
-          </div>
+            <div class="stat">
+              <h4>PV Current</h4>
+              <p class="value">{{ renogyStore.data?.pv_current || '0' }}A</p>
+            </div>
 
-          <div class="stat">
-            <h4>Load Power</h4>
-            <p class="value">{{ renogyStore.data?.load_power || '0' }}W</p>
-          </div>
+            <div class="stat">
+              <h4>Load Power</h4>
+              <p class="value">{{ renogyStore.data?.load_power || '0' }}W</p>
+            </div>
 
-          <div class="stat">
-            <h4>Power Today</h4>
-            <p class="value">{{ renogyStore.data?.power_generation_today || '0' }}Wh</p>
-          </div>
+            <div class="stat">
+              <h4>Power Today</h4>
+              <p class="value">{{ renogyStore.data?.power_generation_today || '0' }}Wh</p>
+            </div>
 
-          <div class="stat">
-            <h4>Total Generation</h4>
-            <p class="value">{{ renogyStore.formatTotalPower(renogyStore.data?.power_generation_total) }}</p>
-          </div>
+            <div class="stat">
+              <h4>Total Generation</h4>
+              <p class="value">{{ renogyStore.formatTotalPower(renogyStore.data?.power_generation_total) }}</p>
+            </div>
 
-          <div class="stat">
-            <h4>Max Charging Today</h4>
-            <p class="value">{{ renogyStore.data?.max_charging_power_today || '0' }}W</p>
-          </div>
+            <div class="stat">
+              <h4>Max Charging Today</h4>
+              <p class="value">{{ renogyStore.data?.max_charging_power_today || '0' }}W</p>
+            </div>
 
-          <div class="stat">
-            <h4>Controller Temperature</h4>
-            <p class="value">{{ renogyStore.data?.controller_temperature || '0' }}°C</p>
+            <div class="stat">
+              <h4>Controller Temperature</h4>
+              <p class="value">{{ renogyStore.data?.controller_temperature || '0' }}°C</p>
+            </div>
           </div>
         </div>
-      </div>
-    </FullScreenDisplay>
-  </div>
+      </FullScreenDisplay>
+    </div>
+  </transition>
 </template>
 
 <script setup lang="ts">

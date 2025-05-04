@@ -51,5 +51,53 @@ export const apiService = {
     }
   },
 
+  /**
+   * Get WiFi status information
+   */
+  getWifiStatus: async () => {
+    try {
+      const response = await apiClient.get('/wifi/status');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Scan for available WiFi networks
+   */
+  scanWifiNetworks: async () => {
+    try {
+      const response = await apiClient.post('/wifi/scan');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Connect to a WiFi network
+   */
+  connectToWifi: async (ssid: string, password: string = '') => {
+    try {
+      const response = await apiClient.post('/wifi/connect', { ssid, password });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Disconnect from current WiFi network
+   */
+  disconnectWifi: async () => {
+    try {
+      const response = await apiClient.post('/wifi/disconnect');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Add more API methods here as needed
 };

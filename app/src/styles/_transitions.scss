@@ -1,0 +1,122 @@
+// Fade transition
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// Slide-down transition
+.slide-down-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-down-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  transform: translateY(-30px);
+  opacity: 0;
+}
+
+// Slide-up transition
+.slide-up-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-up-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+// Scale transition
+.scale-enter-active,
+.scale-leave-active {
+  transition: all 0.3s ease;
+}
+
+.scale-enter-from,
+.scale-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+// Full-screen view transition (scale with fade)
+.fullscreen-enter-active,
+.fullscreen-leave-active {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.fullscreen-enter-from,
+.fullscreen-leave-to {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+// Nav menu transitions based on position
+.nav-next-enter-active,
+.nav-next-leave-active,
+.nav-prev-enter-active,
+.nav-prev-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.nav-next-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.nav-next-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.nav-prev-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.nav-prev-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+// Scale zoom transition for modals or detailed views
+.zoom-enter-active,
+.zoom-leave-active {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.zoom-enter-from,
+.zoom-leave-to {
+  transform: scale(1.1);
+  opacity: 0;
+}

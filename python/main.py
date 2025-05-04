@@ -7,9 +7,11 @@ from quart import Quart, jsonify
 import socketio
 from controllers.system_controller import system_bp
 from controllers.gpio_controller import gpio_bp, monitor_reverse_light, is_reversing
-from controllers.socketio_controller import sio, sio_bp, update_last_state
+from controllers.socketio_controller import sio, sio_bp, update_last_state, emit_event
+from controllers.wifi_controller import wifi_bp, monitor_wifi_status
 from utils.middleware import add_cors_headers
 from services.renogy_simple_service import RenogySimpleService
+from services.wifi_service import get_wifi_status
 from config.settings import DEBUG, HOST, PORT
 
 # Configure logging
@@ -24,6 +26,7 @@ app = Quart(__name__)
 app.register_blueprint(system_bp)
 app.register_blueprint(gpio_bp)
 app.register_blueprint(sio_bp)
+app.register_blueprint(wifi_bp)
 
 # Add CORS middleware
 app.after_request(add_cors_headers)
@@ -45,8 +48,14 @@ async def before_serving():
     # Initialize the GPIO state in the Socket.IO controller
     update_last_state('gpio', {'is_reversing': is_reversing})
 
+    # Initialize WiFi state in Socket.IO controller
+    update_last_state('wifi', get_wifi_status())
+
     # Start reverse light monitoring in background
     app.add_background_task(monitor_reverse_light)
+
+    # Start WiFi status monitoring in background
+    app.add_background_task(monitor_wifi_status)
 
     log.info("Server startup complete")
 

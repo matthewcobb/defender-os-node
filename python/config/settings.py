@@ -21,6 +21,15 @@ BATTERY_CONFIG = {
 POLL_INTERVAL = 5  # seconds - increased from 5s to reduce Raspberry Pi BLE load
 TEMPERATURE_UNIT = 'C'
 
+# WiFi favorites
+WIFI_FAVORITES = [
+    {
+        "ssid": "Matthew Cobb's iPhone",
+        "password": "",  # If empty, will try to connect using saved credentials
+        "auto_connect": True
+    }
+]
+
 # Paths
 import os
 
