@@ -1,9 +1,9 @@
-import { ref, computed, onMounted, readonly, watch } from 'vue';
+import { ref, computed, readonly, onUnmounted } from 'vue';
 import { apiService } from '../services/api';
-import { useWebSocket } from './useWebSocket';
+import { socketEvents, initSocketIO, isConnected as isSocketConnected } from '../services/socketio';
 
 // Define types for WiFi data
-interface WifiStatus {
+export interface WifiStatus {
   connected: boolean;
   ssid: string | null;
   signal_strength: string | null;
@@ -11,10 +11,16 @@ interface WifiStatus {
   error?: string;
 }
 
-interface WifiFavorite {
+export interface WifiFavorite {
   ssid: string;
   password: string;
   auto_connect: boolean;
+}
+
+export interface WifiNetwork {
+  ssid: string;
+  signal: string;
+  is_favorite: boolean;
 }
 
 // Create singleton state that persists between component instances
@@ -22,48 +28,31 @@ const state = {
   error: ref<string>(''),
   connecting: ref<boolean>(false),
   scanning: ref<boolean>(false),
-  networks: ref<any[]>([]),
+  networks: ref<WifiNetwork[]>([]),
   selectedNetwork: ref<string>(''),
   password: ref<string>(''),
-  initialized: ref<boolean>(false)
+  wifiStatus: ref<WifiStatus | null>(null)
 };
 
-// Create a persistent socket connection that won't be destroyed
-const persistentSocket = useWebSocket('wifi:status_update', true);
+// Initialize socket connection outside the composable to ensure single instance
+initSocketIO();
+
+// Setup socket event listener once to avoid multiple handlers
+socketEvents.on('wifi:status_update', (data: WifiStatus) => {
+  state.wifiStatus.value = data;
+  console.log('WiFi status updated via Socket.IO:', data);
+});
 
 /**
  * Composable to manage WiFi connections
  */
 export function useWifi() {
-  // Computed property to check if the websocket is connected
-  const isSocketConnected = computed(() => {
-    return persistentSocket.isConnected.value;
-  });
-
-  // Computed property to get current WiFi status from websocket
-  const wifiStatus = computed<WifiStatus | null>(() => {
-    return persistentSocket.socketData.value as WifiStatus;
-  });
-
-  // Computed property to check if there's an active connection
-  const isConnected = computed(() => {
-    return wifiStatus.value?.connected || false;
-  });
-
-  // Computed property to get current network name
-  const currentNetwork = computed(() => {
-    return wifiStatus.value?.ssid || null;
-  });
-
-  // Computed property to get signal strength
-  const signalStrength = computed(() => {
-    return wifiStatus.value?.signal_strength || null;
-  });
-
-  // Computed property to get favorite networks
-  const favoriteNetworks = computed<WifiFavorite[]>(() => {
-    return wifiStatus.value?.favorites || [];
-  });
+  // Computed properties
+  const isConnected = computed(() => state.wifiStatus.value?.connected || false);
+  const currentNetwork = computed(() => state.wifiStatus.value?.ssid || null);
+  const signalStrength = computed(() => state.wifiStatus.value?.signal_strength || null);
+  const favoriteNetworks = computed<WifiFavorite[]>(() => state.wifiStatus.value?.favorites || []);
+  const socketConnected = computed(() => isSocketConnected());
 
   /**
    * Scan for available WiFi networks
@@ -77,6 +66,7 @@ export function useWifi() {
       state.networks.value = data.networks || [];
     } catch (err: any) {
       state.error.value = err.message || 'Failed to scan for networks';
+      throw err;
     } finally {
       state.scanning.value = false;
     }
@@ -90,17 +80,10 @@ export function useWifi() {
     state.error.value = '';
 
     try {
-      // Make sure the websocket is connected before making API call
-      if (!isSocketConnected.value) {
-        persistentSocket.connect();
-      }
-
       const data = await apiService.connectToWifi(ssid, pwd);
-
       if (!data.success) {
         throw new Error(data.error || 'Failed to connect');
       }
-
       return data;
     } catch (err: any) {
       state.error.value = err.message || 'Failed to connect to network';
@@ -118,17 +101,10 @@ export function useWifi() {
     state.error.value = '';
 
     try {
-      // Make sure the websocket is connected before making API call
-      if (!isSocketConnected.value) {
-        persistentSocket.connect();
-      }
-
       const data = await apiService.disconnectWifi();
-
       if (!data.success) {
         throw new Error(data.error || 'Failed to disconnect');
       }
-
       return data;
     } catch (err: any) {
       state.error.value = err.message || 'Failed to disconnect from network';
@@ -142,47 +118,21 @@ export function useWifi() {
    * Connect to one of the favorite networks
    */
   const connectToFavorite = async (favoriteSsid: string) => {
-    // Find the favorite in the list
-    const favorite = favoriteNetworks.value.find((f: WifiFavorite) => f.ssid === favoriteSsid);
-
-    if (favorite) {
-      return connectToNetwork(favorite.ssid, favorite.password);
-    } else {
+    const favorite = favoriteNetworks.value.find(f => f.ssid === favoriteSsid);
+    if (!favorite) {
       throw new Error('Favorite network not found');
     }
+    return connectToNetwork(favorite.ssid, favorite.password);
   };
 
-  /**
-   * Reconnect the websocket if disconnected
-   */
-  const reconnectSocket = () => {
-    if (!isSocketConnected.value) {
-      console.log('Reconnecting to WebSocket for WiFi status updates...');
-      persistentSocket.connect();
-    }
-  };
-
-  // Initialize with websocket - no API call needed
-  onMounted(() => {
-    // Ensure the websocket is connected
-    reconnectSocket();
-
-    // Add debug output when socket data changes
-    watch(persistentSocket.socketData, (newData: WifiStatus | null) => {
-      console.log('WiFi status updated via WebSocket:', newData);
-    });
-
-    // Watch socket connection status and reconnect if disconnected
-    watch(isSocketConnected, (connected) => {
-      if (!connected) {
-        console.log('WebSocket disconnected, attempting to reconnect...');
-        setTimeout(reconnectSocket, 1000);
-      }
-    });
+  // We don't need onMounted anymore as socket handling is done outside
+  // But we do need to make sure multiple registrations of the event don't occur
+  onUnmounted(() => {
+    // Not removing the global handler to ensure state updates continue
+    // We only remove specific component-level handlers if needed
   });
 
   return {
-    wifiStatus,
     error: readonly(state.error),
     connecting: readonly(state.connecting),
     scanning: readonly(state.scanning),
@@ -197,7 +147,6 @@ export function useWifi() {
     connectToNetwork,
     disconnectNetwork,
     connectToFavorite,
-    isSocketConnected,
-    reconnectSocket
+    isSocketConnected: socketConnected
   };
 }

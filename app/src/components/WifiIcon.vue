@@ -10,8 +10,8 @@
 <script setup lang="ts">
 import { useWifi } from '../features';
 import { Wifi, WifiOff } from 'lucide-vue-next';
-import { useWebSocket } from '../features/system/composables/useWebSocket';
-import { computed, onMounted, watch } from 'vue';
+import { socketEvents, initSocketIO, isConnected as isSocketClientConnected } from '../features/system/services/socketio';
+import { computed, onMounted, ref, onUnmounted } from 'vue';
 
 defineProps<{
   isActive: boolean;
@@ -21,37 +21,37 @@ defineEmits<{
   menuToggle: [menuName: string];
 }>();
 
-// Use persistent websocket connection for wifi status updates
-const { socketData, isConnected: socketConnected, connect } = useWebSocket('wifi:status_update', true);
+// Initialize socket connection
+initSocketIO();
 
-// Get WiFi service for reconnection if needed
+// Track wifi status
+const wifiStatus = ref<any>(null);
+
+// Get WiFi service
 const wifiService = useWifi();
 
-// Get connection status from the websocket directly
+// Get connection status
 const isConnected = computed(() => {
-  // If we have websocket data, use it to determine connection status
-  if (socketData.value) {
-    return socketData.value.connected;
+  // If we have direct data from socketio, use it
+  if (wifiStatus.value) {
+    return wifiStatus.value.connected;
   }
 
   // Fall back to the useWifi hook's isConnected property
   return wifiService.isConnected.value;
 });
 
-// Ensure socket is connected when component mounts
+// Set up socket event listeners
 onMounted(() => {
-  if (!socketConnected.value) {
-    console.log('WifiIcon: WebSocket not connected, connecting...');
-    connect();
-  }
-
-  // Watch for socket connection status changes
-  watch(socketConnected, (connected) => {
-    if (!connected) {
-      console.log('WifiIcon: WebSocket disconnected, reconnecting...');
-      connect();
-    }
+  // Listen for wifi status updates
+  socketEvents.on('wifi:status_update', (data) => {
+    wifiStatus.value = data;
   });
+});
+
+// Clean up event listeners when component is unmounted
+onUnmounted(() => {
+  socketEvents.off('wifi:status_update');
 });
 </script>
 
