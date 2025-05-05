@@ -11,11 +11,11 @@
 import { useWifi } from '../features';
 import { Wifi, WifiOff } from 'lucide-vue-next';
 
-const props = defineProps<{
+defineProps<{
   isActive: boolean;
 }>();
 
-const emit = defineEmits<{
+defineEmits<{
   menuToggle: [menuName: string];
 }>();
 

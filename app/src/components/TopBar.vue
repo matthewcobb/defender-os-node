@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import WifiIcon from './WifiIcon.vue';
 import CpuTemp from './CpuTemp.vue';
 import { useMenuItems } from '../features/ui';
