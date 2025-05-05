@@ -120,10 +120,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useMenuItems } from '../../features/ui';
 import { useWifi } from '../../features';
 import { useToast } from '../../features';
+import { useWebSocket } from '../../features/system/composables/useWebSocket';
 
 const { closeMenuItem } = useMenuItems();
 const {
@@ -139,15 +140,34 @@ const {
   scanNetworks,
   connectToNetwork,
   disconnectNetwork,
-  connectToFavorite
+  connectToFavorite,
+  isSocketConnected,
+  reconnectSocket
 } = useWifi();
+
+// Use persistent websocket for real-time updates
+const { socketData } = useWebSocket('wifi:status_update', true);
+
 const { success, error } = useToast();
 
 const showingConnectForm = ref(false);
 
 // Automatically scan when the dropdown is opened
 onMounted(() => {
+  // Ensure socket is connected
+  if (!isSocketConnected.value) {
+    reconnectSocket();
+  }
+
+  // Scan networks
   scanNetworks();
+});
+
+// Watch for connection status changes from the websocket
+watch(socketData, (newData) => {
+  if (newData) {
+    console.log('WiFi dropdown received status update:', newData);
+  }
 });
 
 // Scan for available networks
@@ -166,7 +186,7 @@ const connectToFavoriteNetwork = async (ssid: string) => {
   try {
     await connectToFavorite(ssid);
     success(`Connected to ${ssid}`);
-    closeMenuItem();
+    setTimeout(() => closeMenuItem(), 1000); // Close after a delay to see the status update
   } catch (err: any) {
     error(`Failed to connect: ${err.message}`);
   }
@@ -179,7 +199,7 @@ const disconnect = async () => {
   try {
     await disconnectNetwork();
     success('Disconnected from WiFi');
-    closeMenuItem();
+    setTimeout(() => closeMenuItem(), 1000); // Close after a delay to see the status update
   } catch (err: any) {
     error(`Failed to disconnect: ${err.message}`);
   }
@@ -210,7 +230,7 @@ const connectToSelectedNetwork = async () => {
     await connectToNetwork(selectedNetwork.value, password.value);
     success(`Connected to ${selectedNetwork.value}`);
     showingConnectForm.value = false;
-    closeMenuItem();
+    setTimeout(() => closeMenuItem(), 1000); // Close after a delay to see the status update
   } catch (err: any) {
     error(`Failed to connect: ${err.message}`);
   }

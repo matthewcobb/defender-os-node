@@ -48,11 +48,9 @@ async def connect_wifi():
 
     connect_result = await connect_to_network(ssid, password)
 
-    # If connection was successful, emit the status update via websocket
-    if connect_result.get('success'):
-        # Get updated status
-        updated_status = get_wifi_status()
-        await emit_event('wifi', 'status_update', updated_status)
+    # Always emit the current status via websocket, regardless of success
+    updated_status = get_wifi_status()
+    await emit_event('wifi', 'status_update', updated_status)
 
     return jsonify(connect_result)
 
@@ -61,11 +59,9 @@ async def disconnect_wifi():
     """Disconnect from WiFi network"""
     disconnect_result = await disconnect_network()
 
-    # If disconnection was successful, emit the status update via websocket
-    if disconnect_result.get('success'):
-        # Get updated status
-        updated_status = get_wifi_status()
-        await emit_event('wifi', 'status_update', updated_status)
+    # Always emit the current status via websocket, regardless of success
+    updated_status = get_wifi_status()
+    await emit_event('wifi', 'status_update', updated_status)
 
     return jsonify(disconnect_result)
 
@@ -82,11 +78,12 @@ async def monitor_wifi_status():
 
             # If status changed, emit an update
             if last_wifi_status != current_status:
+                log.info(f"WiFi status changed: {current_status}")
                 await emit_event('wifi', 'status_update', current_status)
                 last_wifi_status = current_status
 
             # Wait before checking again
-            await asyncio.sleep(10)  # Check every 10 seconds
+            await asyncio.sleep(2)  # Check every 2 seconds for better real-time updates
 
         except Exception as e:
             log.error(f"Error in WiFi status monitoring: {e}")

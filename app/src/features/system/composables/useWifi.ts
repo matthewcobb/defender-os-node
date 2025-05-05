@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, readonly } from 'vue';
+import { ref, computed, onMounted, readonly, watch } from 'vue';
 import { apiService } from '../services/api';
 import { useWebSocket } from './useWebSocket';
 
@@ -19,9 +19,7 @@ interface WifiFavorite {
 
 // Create singleton state that persists between component instances
 const state = {
-  status: ref<WifiStatus | null>(null),
   error: ref<string>(''),
-  loading: ref<boolean>(false),
   connecting: ref<boolean>(false),
   scanning: ref<boolean>(false),
   networks: ref<any[]>([]),
@@ -37,12 +35,14 @@ const persistentSocket = useWebSocket('wifi:status_update', true);
  * Composable to manage WiFi connections
  */
 export function useWifi() {
+  // Computed property to check if the websocket is connected
+  const isSocketConnected = computed(() => {
+    return persistentSocket.isConnected.value;
+  });
+
   // Computed property to get current WiFi status from websocket
   const wifiStatus = computed(() => {
-    if (persistentSocket.socketData.value) {
-      return persistentSocket.socketData.value;
-    }
-    return state.status.value;
+    return persistentSocket.socketData.value;
   });
 
   // Computed property to check if there's an active connection
@@ -64,23 +64,6 @@ export function useWifi() {
   const favoriteNetworks = computed(() => {
     return wifiStatus.value?.favorites || [];
   });
-
-  /**
-   * Fetch WiFi status from the API
-   */
-  const fetchWifiStatus = async () => {
-    state.loading.value = true;
-    state.error.value = '';
-
-    try {
-      const data = await apiService.getWifiStatus();
-      state.status.value = data;
-    } catch (err: any) {
-      state.error.value = err.message || 'Failed to fetch WiFi status';
-    } finally {
-      state.loading.value = false;
-    }
-  };
 
   /**
    * Scan for available WiFi networks
@@ -107,6 +90,11 @@ export function useWifi() {
     state.error.value = '';
 
     try {
+      // Make sure the websocket is connected before making API call
+      if (!isSocketConnected.value) {
+        persistentSocket.connect();
+      }
+
       const data = await apiService.connectToWifi(ssid, pwd);
 
       if (!data.success) {
@@ -130,6 +118,11 @@ export function useWifi() {
     state.error.value = '';
 
     try {
+      // Make sure the websocket is connected before making API call
+      if (!isSocketConnected.value) {
+        persistentSocket.connect();
+      }
+
       const data = await apiService.disconnectWifi();
 
       if (!data.success) {
@@ -159,19 +152,38 @@ export function useWifi() {
     }
   };
 
-  // Initialize WiFi state if not already done
-  onMounted(() => {
-    if (!state.initialized.value) {
-      fetchWifiStatus();
-      state.initialized.value = true;
+  /**
+   * Reconnect the websocket if disconnected
+   */
+  const reconnectSocket = () => {
+    if (!isSocketConnected.value) {
+      console.log('Reconnecting to WebSocket for WiFi status updates...');
+      persistentSocket.connect();
     }
+  };
+
+  // Initialize with websocket - no API call needed
+  onMounted(() => {
+    // Ensure the websocket is connected
+    reconnectSocket();
+
+    // Add debug output when socket data changes
+    watch(persistentSocket.socketData, (newData) => {
+      console.log('WiFi status updated via WebSocket:', newData);
+    });
+
+    // Watch socket connection status and reconnect if disconnected
+    watch(isSocketConnected, (connected) => {
+      if (!connected) {
+        console.log('WebSocket disconnected, attempting to reconnect...');
+        setTimeout(reconnectSocket, 1000);
+      }
+    });
   });
 
   return {
-    status: readonly(state.status),
     wifiStatus,
     error: readonly(state.error),
-    loading: readonly(state.loading),
     connecting: readonly(state.connecting),
     scanning: readonly(state.scanning),
     networks: readonly(state.networks),
@@ -181,10 +193,11 @@ export function useWifi() {
     favoriteNetworks,
     selectedNetwork: state.selectedNetwork,
     password: state.password,
-    fetchWifiStatus,
     scanNetworks,
     connectToNetwork,
     disconnectNetwork,
-    connectToFavorite
+    connectToFavorite,
+    isSocketConnected,
+    reconnectSocket
   };
 }

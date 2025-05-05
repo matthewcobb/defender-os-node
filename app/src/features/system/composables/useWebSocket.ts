@@ -1,7 +1,16 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { io, Socket } from 'socket.io-client';
 
-const API_URL = 'http://0.0.0.0:5000';
+// Get API URL from window location for better compatibility
+const getApiUrl = () => {
+  const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+  const host = window.location.hostname || '0.0.0.0';  // Use hostname if available
+  const port = '5000';
+
+  return `${protocol}://${host}:${port}`;
+};
+
+const API_URL = getApiUrl();
 
 // Track persistent socket connections
 interface PersistentSocketData {
@@ -49,7 +58,11 @@ export function useWebSocket(eventName: string, persistent: boolean = false) {
       // Create the socket connection
       const socketInstance = io(API_URL, {
         reconnectionDelayMax: 10000,
-        transports: ['websocket'],
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        timeout: 20000,
+        transports: ['websocket', 'polling'],
       });
 
       socket.value = socketInstance;
@@ -57,6 +70,7 @@ export function useWebSocket(eventName: string, persistent: boolean = false) {
       // Handle connection event
       socket.value.on('connect', () => {
         isConnected.value = true;
+        error.value = '';
         console.log(`WebSocket connected: ${eventName}`);
       });
 
@@ -68,6 +82,7 @@ export function useWebSocket(eventName: string, persistent: boolean = false) {
 
       // Handle the specific event we're interested in
       socket.value.on(eventName, (data) => {
+        console.log(`WebSocket event received: ${eventName}`, data);
         socketData.value = data;
 
         // Update persistent data if this is a persistent socket

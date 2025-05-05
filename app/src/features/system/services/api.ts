@@ -52,18 +52,6 @@ export const apiService = {
   },
 
   /**
-   * Get WiFi status information
-   */
-  getWifiStatus: async () => {
-    try {
-      const response = await apiClient.get('/wifi/status');
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
    * Scan for available WiFi networks
    */
   scanWifiNetworks: async () => {
