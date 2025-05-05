@@ -1,5 +1,5 @@
 <template>
-  <p class="font-monospace small">{{ error ? '--' : temp }}ºC</p>
+  <p class="font-monospace">{{ error ? '--' : temp }}ºC</p>
 </template>
 
 <script setup lang="ts">

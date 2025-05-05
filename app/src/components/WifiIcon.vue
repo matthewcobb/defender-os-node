@@ -1,8 +1,8 @@
 <template>
   <div @click.stop="$emit('menuToggle', 'wifi-status')" class="wifi-container" :class="{ 'active': isActive }">
     <div class="wifi-icon" :class="{ 'connected': isConnected }">
-      <Wifi v-if="isConnected" class="icon" :size="20" />
-      <WifiOff v-else class="icon" :size="20" />
+      <Wifi v-if="isConnected" class="icon" :size="32" />
+      <WifiOff v-else class="icon" :size="32" />
     </div>
   </div>
 </template>

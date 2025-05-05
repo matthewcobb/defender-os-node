@@ -1,7 +1,7 @@
 <template>
   <div class="top-bar">
     <div class="menu">
-      <p class="app-name small">
+      <p class="app-name">
         DEFENDER<span class="fgColor-muted">OS</span>
       </p>
       <div class="menu-items">
