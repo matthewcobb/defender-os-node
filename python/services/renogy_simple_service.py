@@ -137,7 +137,7 @@ class RenogySimpleService:
                         log.debug("📡 Emitted combined Renogy data")
                 elif not dcdc_connected or not battery_connected:
                     # Log which devices are disconnected
-                    log.debug(f"📵 Skipping update - disconnected devices: " +
+                    log.warning(f"📵 Skipping update - disconnected devices: " +
                               (f"DCDC, " if not dcdc_connected else "") +
                               (f"Battery" if not battery_connected else ""))
             except Exception as e:
@@ -171,10 +171,8 @@ class RenogySimpleService:
         log.info(f"📥 Received data from {device_key} device: {data}")
         if device_key == 'dcdc':
             self.data['dcdc'] = data
-            log.debug(f"📥 Received data from DCDC device")
         elif device_key == 'battery':
             self.data['battery'] = data
-            log.debug(f"📥 Received data from Battery device")
 
     async def on_device_error(self, device_key: str, device: Any, error: str) -> None:
         """Handle device errors"""

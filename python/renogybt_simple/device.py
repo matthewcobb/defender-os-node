@@ -205,7 +205,7 @@ class Device:
                         await self._read_next_section()
 
                         # Small delay between reads
-                        await asyncio.sleep(0.8)
+                        await asyncio.sleep(0.5)
 
                     except Exception as e:
                         logging.error(f"⚠️ Error polling {self.name}: {e}")
