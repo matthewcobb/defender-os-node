@@ -33,6 +33,15 @@
       </div>
     </div>
 
+    <!-- Wedding Mode Toggle -->
+    <div class="setting-item">
+      <h4>Wedding Mode</h4>
+      <label class="toggle-switch">
+        <input type="checkbox" v-model="weddingMode" @change="saveWeddingMode">
+        <span class="slider"></span>
+      </label>
+    </div>
+
     <div class="setting-item">
       <h4>Close</h4>
       <button class="btn btn-danger" @click="closeKiosk" :disabled="isClosingKiosk">
@@ -46,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useToast } from '../../features';
 import { apiService } from '../../features/system/services/api';
 import { useSystemUpdates } from '../../features/system/composables/useSystemUpdates';
@@ -58,6 +67,7 @@ const updateMessage = ref('');
 const updateError = ref(false);
 const kioskMessage = ref('');
 const kioskError = ref(false);
+const weddingMode = ref(false);
 
 // Use the global toast system
 const { success, error } = useToast();
@@ -70,6 +80,24 @@ const formatStepName = (name: string) => {
   return name.split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+};
+
+// Wedding mode functionality
+onMounted(() => {
+  // Load wedding mode setting from localStorage
+  const savedWeddingMode = localStorage.getItem('weddingMode');
+  if (savedWeddingMode === 'true') {
+    weddingMode.value = true;
+  }
+});
+
+const saveWeddingMode = () => {
+  localStorage.setItem('weddingMode', weddingMode.value.toString());
+  if (weddingMode.value) {
+    success('Wedding Mode enabled! Restart the app to activate.');
+  } else {
+    success('Wedding Mode disabled');
+  }
 };
 
 // Watch for changes in update status
@@ -195,5 +223,59 @@ const closeKiosk = async () => {
   &:last-child {
     border-bottom: none;
   }
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--primary);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--primary);
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
 }
 </style>
