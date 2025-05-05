@@ -23,6 +23,7 @@ import ToastMessage from './components/ToastMessage.vue';
 import { apiService } from './features/system/services/api';
 import { useToast } from './features';
 import { useGpioStore } from './stores/gpioStore';
+import { useWifi } from './features';
 
 const carplayContainer = ref<HTMLDivElement | null>(null);
 const width = ref(0);
@@ -33,6 +34,10 @@ const { state: toastState, hideToast } = useToast();
 const updateToastVisibility = (show: boolean) => {
   if (!show) hideToast();
 };
+
+// Initialize the WiFi service
+const { fetchWifiStatus } = useWifi();
+fetchWifiStatus();
 
 // Initialize the GPIO store
 const router = useRouter();

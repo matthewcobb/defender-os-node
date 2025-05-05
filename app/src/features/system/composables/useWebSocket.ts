@@ -3,10 +3,37 @@ import { io, Socket } from 'socket.io-client';
 
 const API_URL = 'http://0.0.0.0:5000';
 
+// Track persistent socket connections
+interface PersistentSocketData {
+  socket: Socket;
+  socketData: any;
+  isConnected: boolean;
+  error: string;
+  refCount: number;
+}
+
+const persistentSockets = new Map<string, PersistentSocketData>();
+
 /**
  * Composable to manage WebSocket connections and data
+ * @param eventName The event to listen for
+ * @param persistent Whether to keep the connection alive between component instances
  */
-export function useWebSocket(eventName: string) {
+export function useWebSocket(eventName: string, persistent: boolean = false) {
+  // Use persistent socket if requested and available
+  if (persistent && persistentSockets.has(eventName)) {
+    const socketData = persistentSockets.get(eventName)!;
+    socketData.refCount++;
+
+    return {
+      socketData: ref(socketData.socketData),
+      isConnected: ref(socketData.isConnected),
+      error: ref(socketData.error),
+      connect: () => {}, // No-op as connection is already managed
+      disconnect: () => {} // No-op as disconnection is managed by the persistent socket
+    };
+  }
+
   const socketData = ref<any>(null);
   const socket = ref<Socket | null>(null);
   const isConnected = ref(false);
@@ -20,10 +47,12 @@ export function useWebSocket(eventName: string) {
 
     try {
       // Create the socket connection
-      socket.value = io(API_URL, {
+      const socketInstance = io(API_URL, {
         reconnectionDelayMax: 10000,
         transports: ['websocket'],
       });
+
+      socket.value = socketInstance;
 
       // Handle connection event
       socket.value.on('connect', () => {
@@ -40,6 +69,11 @@ export function useWebSocket(eventName: string) {
       // Handle the specific event we're interested in
       socket.value.on(eventName, (data) => {
         socketData.value = data;
+
+        // Update persistent data if this is a persistent socket
+        if (persistent && persistentSockets.has(eventName)) {
+          persistentSockets.get(eventName)!.socketData = data;
+        }
       });
 
       // Handle connection error
@@ -47,6 +81,17 @@ export function useWebSocket(eventName: string) {
         error.value = `Connection error: ${err.message}`;
         console.error(`WebSocket connection error: ${err.message}`);
       });
+
+      // If persistent, store in the map
+      if (persistent) {
+        persistentSockets.set(eventName, {
+          socket: socketInstance,
+          socketData: socketData.value,
+          isConnected: isConnected.value,
+          error: error.value,
+          refCount: 1
+        });
+      }
     } catch (err: any) {
       error.value = err.message || 'Failed to connect to WebSocket';
       console.error(`WebSocket setup error: ${err}`);
@@ -57,6 +102,20 @@ export function useWebSocket(eventName: string) {
    * Disconnect from the WebSocket server
    */
   const disconnect = () => {
+    // For persistent sockets, don't disconnect
+    if (persistent && persistentSockets.has(eventName)) {
+      const socketData = persistentSockets.get(eventName)!;
+      socketData.refCount--;
+
+      // Only disconnect if no more components are using this socket
+      if (socketData.refCount <= 0) {
+        socketData.socket.disconnect();
+        persistentSockets.delete(eventName);
+      }
+      return;
+    }
+
+    // Regular (non-persistent) socket disconnect
     if (socket.value) {
       socket.value.disconnect();
       socket.value = null;

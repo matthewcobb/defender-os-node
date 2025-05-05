@@ -151,6 +151,8 @@ const resolveComponent = (componentName: string) => {
   .menu-content {
     position: absolute;
     top: var(--top-bar-height);
+    max-height: calc(100vh - var(--top-bar-height));
+    overflow:auto;
     left: 0;
     width: 100%;
     z-index: 91;
@@ -162,6 +164,7 @@ const resolveComponent = (componentName: string) => {
     border-radius: 0 0 0.5rem 0.5rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 1rem;
+    box-sizing: border-box;
   }
 
   .menu-header {

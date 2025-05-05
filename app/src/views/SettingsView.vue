@@ -1,7 +1,6 @@
 <template>
   <div class="view">
     <div class="settings-view">
-      <WifiPanel />
       <SystemPanel />
       <CameraPanel />
     </div>
@@ -11,7 +10,6 @@
 <script setup lang="ts">
 import SystemPanel from '../components/settings/SystemPanel.vue';
 import CameraPanel from '../components/settings/CameraPanel.vue';
-import WifiPanel from '../components/settings/WifiPanel.vue';
 </script>
 
 <style lang="scss" scoped>

@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, readonly } from 'vue';
 import { apiService } from '../services/api';
 import { useWebSocket } from './useWebSocket';
 
@@ -17,30 +17,32 @@ interface WifiFavorite {
   auto_connect: boolean;
 }
 
+// Create singleton state that persists between component instances
+const state = {
+  status: ref<WifiStatus | null>(null),
+  error: ref<string>(''),
+  loading: ref<boolean>(false),
+  connecting: ref<boolean>(false),
+  scanning: ref<boolean>(false),
+  networks: ref<any[]>([]),
+  selectedNetwork: ref<string>(''),
+  password: ref<string>(''),
+  initialized: ref<boolean>(false)
+};
+
+// Create a persistent socket connection that won't be destroyed
+const persistentSocket = useWebSocket('wifi:status_update', true);
+
 /**
  * Composable to manage WiFi connections
  */
 export function useWifi() {
-  const status = ref<WifiStatus | null>(null);
-  const error = ref<string>('');
-  const loading = ref<boolean>(false);
-  const connecting = ref<boolean>(false);
-  const scanning = ref<boolean>(false);
-  const networks = ref<any[]>([]);
-
-  // For connection form
-  const selectedNetwork = ref<string>('');
-  const password = ref<string>('');
-
-  // Setup websocket for WiFi status updates
-  const { socketData } = useWebSocket('wifi:status_update');
-
   // Computed property to get current WiFi status from websocket
   const wifiStatus = computed(() => {
-    if (socketData.value) {
-      return socketData.value;
+    if (persistentSocket.socketData.value) {
+      return persistentSocket.socketData.value;
     }
-    return status.value;
+    return state.status.value;
   });
 
   // Computed property to check if there's an active connection
@@ -67,16 +69,16 @@ export function useWifi() {
    * Fetch WiFi status from the API
    */
   const fetchWifiStatus = async () => {
-    loading.value = true;
-    error.value = '';
+    state.loading.value = true;
+    state.error.value = '';
 
     try {
       const data = await apiService.getWifiStatus();
-      status.value = data;
+      state.status.value = data;
     } catch (err: any) {
-      error.value = err.message || 'Failed to fetch WiFi status';
+      state.error.value = err.message || 'Failed to fetch WiFi status';
     } finally {
-      loading.value = false;
+      state.loading.value = false;
     }
   };
 
@@ -84,16 +86,16 @@ export function useWifi() {
    * Scan for available WiFi networks
    */
   const scanNetworks = async () => {
-    scanning.value = true;
-    error.value = '';
+    state.scanning.value = true;
+    state.error.value = '';
 
     try {
       const data = await apiService.scanWifiNetworks();
-      networks.value = data.networks || [];
+      state.networks.value = data.networks || [];
     } catch (err: any) {
-      error.value = err.message || 'Failed to scan for networks';
+      state.error.value = err.message || 'Failed to scan for networks';
     } finally {
-      scanning.value = false;
+      state.scanning.value = false;
     }
   };
 
@@ -101,8 +103,8 @@ export function useWifi() {
    * Connect to a WiFi network
    */
   const connectToNetwork = async (ssid: string, pwd: string = '') => {
-    connecting.value = true;
-    error.value = '';
+    state.connecting.value = true;
+    state.error.value = '';
 
     try {
       const data = await apiService.connectToWifi(ssid, pwd);
@@ -113,10 +115,10 @@ export function useWifi() {
 
       return data;
     } catch (err: any) {
-      error.value = err.message || 'Failed to connect to network';
+      state.error.value = err.message || 'Failed to connect to network';
       throw err;
     } finally {
-      connecting.value = false;
+      state.connecting.value = false;
     }
   };
 
@@ -124,8 +126,8 @@ export function useWifi() {
    * Disconnect from current network
    */
   const disconnectNetwork = async () => {
-    connecting.value = true;
-    error.value = '';
+    state.connecting.value = true;
+    state.error.value = '';
 
     try {
       const data = await apiService.disconnectWifi();
@@ -136,10 +138,10 @@ export function useWifi() {
 
       return data;
     } catch (err: any) {
-      error.value = err.message || 'Failed to disconnect from network';
+      state.error.value = err.message || 'Failed to disconnect from network';
       throw err;
     } finally {
-      connecting.value = false;
+      state.connecting.value = false;
     }
   };
 
@@ -157,20 +159,28 @@ export function useWifi() {
     }
   };
 
+  // Initialize WiFi state if not already done
+  onMounted(() => {
+    if (!state.initialized.value) {
+      fetchWifiStatus();
+      state.initialized.value = true;
+    }
+  });
+
   return {
-    status,
+    status: readonly(state.status),
     wifiStatus,
-    error,
-    loading,
-    connecting,
-    scanning,
-    networks,
+    error: readonly(state.error),
+    loading: readonly(state.loading),
+    connecting: readonly(state.connecting),
+    scanning: readonly(state.scanning),
+    networks: readonly(state.networks),
     isConnected,
     currentNetwork,
     signalStrength,
     favoriteNetworks,
-    selectedNetwork,
-    password,
+    selectedNetwork: state.selectedNetwork,
+    password: state.password,
     fetchWifiStatus,
     scanNetworks,
     connectToNetwork,
