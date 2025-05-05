@@ -41,8 +41,8 @@ export function useWifi() {
   });
 
   // Computed property to get current WiFi status from websocket
-  const wifiStatus = computed(() => {
-    return persistentSocket.socketData.value;
+  const wifiStatus = computed<WifiStatus | null>(() => {
+    return persistentSocket.socketData.value as WifiStatus;
   });
 
   // Computed property to check if there's an active connection
@@ -61,7 +61,7 @@ export function useWifi() {
   });
 
   // Computed property to get favorite networks
-  const favoriteNetworks = computed(() => {
+  const favoriteNetworks = computed<WifiFavorite[]>(() => {
     return wifiStatus.value?.favorites || [];
   });
 
@@ -168,7 +168,7 @@ export function useWifi() {
     reconnectSocket();
 
     // Add debug output when socket data changes
-    watch(persistentSocket.socketData, (newData) => {
+    watch(persistentSocket.socketData, (newData: WifiStatus | null) => {
       console.log('WiFi status updated via WebSocket:', newData);
     });
 
