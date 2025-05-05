@@ -2,17 +2,8 @@
   <div class="defender-os">
     <TopBar />
     <nav class="tab-nav panel">
-      <router-link to="/home" class="tab">
-        <CarFront :size="32" />
-      </router-link>
-      <router-link to="/settings" class="tab">
-        <Bolt :size="32" />
-      </router-link>
-      <router-link to="/reverse" class="tab">
-        <Video :size="32" />
-      </router-link>
-      <router-link to="/about" class="tab">
-        <Info :size="32" />
+      <router-link v-for="tab in tabs" :key="tab.path" :to="tab.path" class="tab">
+        <component :is="tab.icon" :size="32" />
       </router-link>
     </nav>
     <main class="content">
@@ -31,8 +22,16 @@ import { CarFront, Bolt, Info, Video } from 'lucide-vue-next';
 import { useRoute } from 'vue-router';
 import { watch, ref, computed } from 'vue';
 
-// Define tab routes in order of appearance in the UI
-const tabRoutes = ['/home', '/settings', '/reverse', '/about'];
+// Define tabs with paths and icons in one place
+const tabs = [
+  { path: '/home', icon: CarFront },
+  { path: '/settings', icon: Bolt },
+  { path: '/reverse', icon: Video },
+  { path: '/about', icon: Info }
+];
+
+// Define tab routes based on the tabs array
+const tabRoutes = computed(() => tabs.map(tab => tab.path));
 
 // Track navigation for transitions
 const route = useRoute();
@@ -46,8 +45,8 @@ const transitionName = computed(() => {
   }
 
   // Find indices in tab routes
-  const currentIndex = tabRoutes.indexOf(route.path);
-  const previousIndex = tabRoutes.indexOf(previousPath.value);
+  const currentIndex = tabRoutes.value.indexOf(route.path);
+  const previousIndex = tabRoutes.value.indexOf(previousPath.value);
 
   // Only apply directional transitions for tab navigation
   if (currentIndex >= 0 && previousIndex >= 0) {
