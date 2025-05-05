@@ -5,13 +5,23 @@ import AboutView from '../views/AboutView.vue'
 import ReverseView from '../views/ReverseView.vue'
 import BatteryView from '../views/BatteryView.vue'
 import SolarView from '../views/SolarView.vue'
+import WeddingView from '../views/WeddingView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      redirect: '/home'
+      redirect: () => {
+        // Check if wedding mode is enabled
+        const weddingModeEnabled = localStorage.getItem('weddingMode') === 'true'
+        return weddingModeEnabled ? '/wedding' : '/home'
+      }
+    },
+    {
+      path: '/wedding',
+      name: 'wedding',
+      component: WeddingView
     },
     {
       path: '/home',

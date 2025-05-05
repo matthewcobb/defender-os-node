@@ -35,16 +35,13 @@
         </h1>
         <div class="message">
           <p>
-            Your carriage awaits, can't wait to see you on the isle!
-          </p>
-          <p>
-            You look GORGEOUS!
+            Your carriage awaits, can't wait to see you on the isle! You look <b>GORGEOUS!</b>
           </p>
           <p>
             Love, Matt x
           </p>
         </div>
-        <button class="btn" @click="closeWedding">Continue</button>
+        <button class="btn btn-lg" @click="closeWedding">Continue</button>
       </div>
     </div>
   </FullScreenDisplay>
@@ -96,6 +93,9 @@ const closeWedding = () => {
 </script>
 
 <style lang="scss" scoped>
+p {
+  font-size: 1.75rem;
+}
 .wedding-container {
   width: 100%;
   height: 100%;
@@ -150,8 +150,8 @@ const closeWedding = () => {
 
 .message {
   margin: 0.5rem 0 1rem 0;
-  font-size: 1.5rem;
   line-height: 1.6;
+  width: 50vw;
 
   p {
     margin: 0.5rem 0;

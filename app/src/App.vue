@@ -1,15 +1,9 @@
 <template>
   <div class="app">
-    <!-- Wedding Component -->
-    <WeddingComponent v-if="showWeddingMode" @close="closeWeddingMode" />
-
-    <!-- Regular App Content -->
-    <template v-else>
-      <DefenderOS />
-      <div class="carplay-container" ref="carplayContainer">
-        <CarPlayDisplay v-if="width > 0" :width="width" :height="height" />
-      </div>
-    </template>
+    <DefenderOS />
+    <div class="carplay-container" ref="carplayContainer">
+      <CarPlayDisplay v-if="width > 0" :width="width" :height="height" />
+    </div>
 
     <ToastMessage
       :show="toastState.show"
@@ -27,7 +21,6 @@ import { useRouter } from 'vue-router';
 import CarPlayDisplay from './components/CarPlayDisplay.vue';
 import DefenderOS from './components/DefenderOS.vue';
 import ToastMessage from './components/ToastMessage.vue';
-import WeddingComponent from './components/WeddingComponent.vue';
 import { apiService } from './features/system/services/api';
 import { useToast } from './features';
 import { useGpioStore } from './stores/gpioStore';
@@ -37,7 +30,6 @@ const router = useRouter();
 const carplayContainer = ref<HTMLDivElement | null>(null);
 const width = ref(0);
 const height = ref(0);
-const showWeddingMode = ref(false);
 
 // Use the global toast system
 const { state: toastState, hideToast } = useToast();
@@ -48,22 +40,11 @@ const updateToastVisibility = (show: boolean) => {
 // Initialize the WiFi service (websocket connection is now handled automatically in useWifi)
 useWifi();
 
-// Function to close wedding mode
-const closeWeddingMode = () => {
-  showWeddingMode.value = false;
-};
-
 // Initialize the GPIO store
 const gpioStore = useGpioStore();
 gpioStore.init(router);
 
 onMounted(async () => {
-  // Check if wedding mode is enabled
-  const weddingModeEnabled = localStorage.getItem('weddingMode') === 'true';
-  if (weddingModeEnabled) {
-    showWeddingMode.value = true;
-  }
-
   // Wait for next DOM update so container is rendered
   await nextTick();
 
