@@ -1,30 +1,29 @@
 <template>
-  <div class="about-view">
-    <div class="panel">
-      <h3>Version Information</h3>
-      <div class="info-row">
-        <h4>Defender OS:</h4>
-        <h4>v{{ appVersion }}</h4>
+  <div class="view">
+    <div class="about-view">
+      <div class="panel">
+        <h3>Version Information</h3>
+        <div class="info-row">
+          <h4>Defender OS:</h4>
+          <h4>v{{ appVersion }}</h4>
+        </div>
+        <div class="info-row">
+          <h4>Vue Version:</h4>
+          <h4>v{{ vueVersion }}</h4>
+        </div>
+        <div v-if="systemInfo.platform" class="info-row">
+          <h4>Platform:</h4>
+          <h4>{{ systemInfo.platform }}</h4>
+        </div>
       </div>
-      <div class="info-row">
-        <h4>Vue Version:</h4>
-        <h4>v{{ vueVersion }}</h4>
-      </div>
-      <div v-if="systemInfo.platform" class="info-row">
-        <h4>Platform:</h4>
-        <h4>{{ systemInfo.platform }}</h4>
-      </div>
-    </div>
 
-    <div class="panel">
-      <h3>Contributors</h3>
-      <small>
-        Defender OS is an open-source project developed by Land Rover enthusiasts.
-      </small>
-      <div class="contributors">
-        <div class="contributor">
-          <div class="avatar">MC</div>
-          <small>Matthew Cobb</small>
+      <div class="panel">
+        <h3>Contributors</h3>
+        <div class="contributors">
+          <div class="contributor">
+            <div class="avatar">MC</div>
+            <small>Matthew Cobb</small>
+          </div>
         </div>
       </div>
     </div>
@@ -50,6 +49,7 @@ const systemInfo = reactive({
   grid-template-columns: 1fr;
   gap: 0.5rem;
 }
+
 .info-row {
   display: grid;
   grid-template-columns: 120px 1fr;

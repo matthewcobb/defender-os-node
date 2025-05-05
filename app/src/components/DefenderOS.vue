@@ -2,21 +2,16 @@
   <div class="defender-os">
     <TopBar />
     <nav class="tab-nav panel">
-      <router-link to="/home" class="tab">
-        <CarFront :size="32" />
-      </router-link>
-      <router-link to="/settings" class="tab">
-        <Bolt :size="32" />
-      </router-link>
-      <router-link to="/reverse" class="tab">
-        <Video :size="32" />
-      </router-link>
-      <router-link to="/about" class="tab">
-        <Info :size="32" />
+      <router-link v-for="tab in tabs" :key="tab.path" :to="tab.path" class="tab">
+        <component :is="tab.icon" :size="32" />
       </router-link>
     </nav>
     <main class="content">
-      <router-view></router-view>
+      <router-view v-slot="{ Component, route }">
+        <transition :name="transitionName">
+          <component :is="Component" :key="route.path" />
+        </transition>
+      </router-view>
     </main>
   </div>
 </template>
@@ -24,6 +19,48 @@
 <script setup lang="ts">
 import TopBar from './TopBar.vue';
 import { CarFront, Bolt, Info, Video } from 'lucide-vue-next';
+import { useRoute } from 'vue-router';
+import { watch, ref, computed } from 'vue';
+
+// Define tabs with paths and icons in one place
+const tabs = [
+  { path: '/home', icon: CarFront },
+  { path: '/settings', icon: Bolt },
+  { path: '/reverse', icon: Video },
+  { path: '/about', icon: Info }
+];
+
+// Define tab routes based on the tabs array
+const tabRoutes = computed(() => tabs.map(tab => tab.path));
+
+// Track navigation for transitions
+const route = useRoute();
+const previousPath = ref('');
+
+// Determine transition direction based on navigation
+const transitionName = computed(() => {
+  // If we don't have a previous path, just fade
+  if (!previousPath.value) {
+    return;
+  }
+
+  // Find indices in tab routes
+  const currentIndex = tabRoutes.value.indexOf(route.path);
+  const previousIndex = tabRoutes.value.indexOf(previousPath.value);
+
+  // Only apply directional transitions for tab navigation
+  if (currentIndex >= 0 && previousIndex >= 0) {
+    return currentIndex > previousIndex ? 'nav-next' : 'nav-prev';
+  }
+});
+
+// Track route changes to determine direction
+watch(() => route.path, (_, oldPath) => {
+  if (oldPath) {
+    previousPath.value = oldPath;
+  }
+}, { immediate: true });
+
 // DefenderOS component serves as a container for various subpages
 </script>
 
@@ -102,12 +139,8 @@ import { CarFront, Bolt, Info, Video } from 'lucide-vue-next';
 }
 
 .content {
-  padding: 0.5rem;
   width: 100%;
   height: calc(100vh - var(--top-bar-height)); /* Fills the remaining vertical space */
-  overflow-y: auto;
-  overflow-x: hidden;
-  box-sizing: border-box;
-  padding-bottom: 5rem;
+  position: relative;
 }
 </style>

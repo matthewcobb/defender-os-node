@@ -35,7 +35,8 @@ last_state = {
         'logs': [],
         'current_step': None,
         'error': None
-    }
+    },
+    'wifi': None
 }
 
 @sio.event

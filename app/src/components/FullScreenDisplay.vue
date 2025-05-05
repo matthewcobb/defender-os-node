@@ -68,13 +68,13 @@ watch(() => props.disableCollapse, (newValue) => {
 <style lang="scss" scoped>
 .fullscreen-display {
   background-color: var(--full-screen-bg);
-  position: relative;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  opacity: 0;
-  animation: fadeIn 0.5s ease-in-out forwards;
 
   &.fullscreen {
     position: fixed;

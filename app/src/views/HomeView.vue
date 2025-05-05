@@ -1,12 +1,14 @@
 <template>
-  <div class="home-view">
-    <div class="battery-status" :class="{ 'disconnected': !renogyStore.devicesReady }">
-      <LeisureBatteryPanel
-        @click="navigateToBattery"
-      />
-      <SolarPanel
-        @click="navigateToSolar"
-      />
+  <div class="view">
+    <div class="home-view">
+      <div class="battery-status" :class="{ 'disconnected': !renogyStore.devicesReady }">
+        <LeisureBatteryPanel
+          @click="navigateToBattery"
+        />
+        <SolarPanel
+          @click="navigateToSolar"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -32,7 +34,7 @@ const handleErrorClick = () => {
 };
 
 const navigateToBattery = () => {
-  if (renogyStore.devicesReady) {
+  if (!renogyStore.devicesReady) {
     router.push({
       path: '/battery'
     });
@@ -61,6 +63,11 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.home-view {
+  width: 100%;
+  height: 100%;
+}
+
 .battery-status {
   display: grid;
   grid-template-columns: 1fr;

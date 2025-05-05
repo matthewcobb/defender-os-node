@@ -1,11 +1,13 @@
 <template>
-  <div class="reverse-view">
-    <ReverseCameraDisplay
-      v-if="showCamera"
-      :deviceId="cameraDeviceId"
-      :startFullscreen="startFullscreen"
-      @close="closeCamera"
-    />
+  <div class="view">
+    <div class="reverse-view">
+      <ReverseCameraDisplay
+        v-if="showCamera"
+        :deviceId="cameraDeviceId"
+        :startFullscreen="startFullscreen"
+        @close="closeCamera"
+      />
+    </div>
   </div>
 </template>
 

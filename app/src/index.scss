@@ -3,19 +3,21 @@
   --primary: #36d34b;
   --danger: #ff4040;
   --translucent: rgba(0, 0, 0, 0.5);
-  --top-bar-bg: rgba(18, 25, 21, 0.764);
+  --top-bar-bg: rgba(18, 25, 21, 1);
   --active-carplay: #00e448;
   --box-shadow: 0 0.25rem 0.5rem 0 rgba(0, 0, 0, 0.3);
   --container-border-radius: 0.75rem;
   --fgColor-base: #ffffff;
   --fgColor-muted: #aecbb8;
   --panel-bg: rgba(153, 188, 165, 0.15);
+  --panel-bg-dark: rgba(153, 188, 165, 0.15);
   --panel-charging: rgb(15, 99, 47);
+  --tooltip-bg: rgb(9, 14, 11);
   --full-screen-bg: rgba(0, 0, 0);
   --charging-base: #00e448;
   --charging-dark: #04542c;
   // Sizes
-  --top-bar-height: 2rem;
+  --top-bar-height: 3rem;
 }
 
 @import './styles/type';
@@ -23,6 +25,7 @@
 @import './styles/components';
 @import './styles/grid';
 @import './styles/buttons';
+@import './styles/transitions';
 // @import './styles/spacing';
 // @import './styles/border';
 // @import './styles/progress';
@@ -46,18 +49,18 @@ body,
 }
 
 ::-webkit-scrollbar {
-  width: 0.75rem;
+  display: none;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--translucent);
-  border-radius: 0.5rem;
-  border: 0.2rem solid var(--panel-bg);
-}
+// ::-webkit-scrollbar-thumb {
+//   background: var(--translucent);
+//   border-radius: 0.5rem;
+//   border: 0.2rem solid var(--panel-bg);
+// }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+// ::-webkit-scrollbar-track {
+//   background: transparent;
+// }
 
 body {
   background-color: var(--body-bg);
@@ -84,4 +87,14 @@ body {
   to {
     opacity: 1;
   }
+}
+
+.view {
+  padding: 0.5rem;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding-bottom: 5rem;
 }

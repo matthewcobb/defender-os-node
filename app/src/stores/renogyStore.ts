@@ -68,7 +68,7 @@ export const useRenogyStore = defineStore('renogy', () => {
   });
 
   const currentPowerOutput = computed(() => {
-    return Math.abs((data.value?.load_power ?? 0) - (data.value?.battery_power ?? 0));
+    return Math.abs((data.value?.pv_power ?? 0) - (data.value?.battery_power ?? 0));
   });
 
   const solarPowerPercentage = computed(() => {
