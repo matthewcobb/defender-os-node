@@ -52,7 +52,7 @@ async def connect(sid, environ):
 @sio.event
 async def disconnect(sid):
     """Handle client disconnection"""
-    log.info(f"SocketIO client disconnected: {sid}")
+    log.warning(f"SocketIO client disconnected: {sid}")
 
 @sio.event
 async def ping(sid, data):
