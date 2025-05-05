@@ -24,8 +24,11 @@
       <div v-else class="favorites-list">
         <div v-for="(favorite, index) in favoriteNetworks" :key="index" class="favorite-item">
           <div class="favorite-info">
-            <p class="favorite-name">{{ favorite.ssid }}</p>
-            <p class="favorite-details">{{ favorite.auto_connect ? 'Auto-connect enabled' : '' }}</p>
+            <small class="favorite-name">
+              {{ favorite.ssid }}
+            </small>
+            <small class="favorite-details">
+              {{ favorite.auto_connect ? 'Auto-connect enabled' : '' }}</small>
           </div>
           <button
             class="btn btn-sm btn-primary"

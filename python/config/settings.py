@@ -24,7 +24,7 @@ TEMPERATURE_UNIT = 'C'
 # WiFi favorites
 WIFI_FAVORITES = [
     {
-        "ssid": "Matthew Cobb's iPhone",
+        "ssid": "Matthew Cobb’s iPhone",
         "password": "",  # If empty, will try to connect using saved credentials
         "auto_connect": True
     }
