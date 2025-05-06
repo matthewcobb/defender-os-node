@@ -38,7 +38,16 @@ const weddingModeEnabled = ref(false);
 
 onMounted(() => {
   // Check if wedding mode is enabled in localStorage
-  weddingModeEnabled.value = localStorage.getItem('weddingMode') === 'true';
+  const savedWeddingMode = localStorage.getItem('weddingMode');
+
+  // If no saved setting, default to true (wedding mode on)
+  if (savedWeddingMode === null) {
+    weddingModeEnabled.value = true;
+    // Save this default setting
+    localStorage.setItem('weddingMode', 'true');
+  } else {
+    weddingModeEnabled.value = savedWeddingMode === 'true';
+  }
 
   // Listen for changes to wedding mode setting
   window.addEventListener('storage', (event) => {

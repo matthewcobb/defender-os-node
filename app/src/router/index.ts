@@ -14,8 +14,16 @@ const router = createRouter({
       path: '/',
       redirect: () => {
         // Check if wedding mode is enabled
-        const weddingModeEnabled = localStorage.getItem('weddingMode') === 'true'
-        return weddingModeEnabled ? '/wedding' : '/home'
+        const savedWeddingMode = localStorage.getItem('weddingMode');
+
+        // If no saved setting, default to wedding mode on
+        if (savedWeddingMode === null) {
+          localStorage.setItem('weddingMode', 'true');
+          return '/wedding';
+        }
+
+        // Otherwise use saved setting
+        return savedWeddingMode === 'true' ? '/wedding' : '/home';
       }
     },
     {

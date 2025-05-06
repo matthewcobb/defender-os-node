@@ -86,8 +86,15 @@ const formatStepName = (name: string) => {
 onMounted(() => {
   // Load wedding mode setting from localStorage
   const savedWeddingMode = localStorage.getItem('weddingMode');
-  if (savedWeddingMode === 'true') {
+
+  // If no saved setting (or it's explicitly set to false), default to true (wedding mode on)
+  if (savedWeddingMode === null) {
     weddingMode.value = true;
+    // Save this default setting
+    localStorage.setItem('weddingMode', 'true');
+  } else {
+    // Otherwise use the saved setting
+    weddingMode.value = savedWeddingMode === 'true';
   }
 });
 
