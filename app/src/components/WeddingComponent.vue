@@ -35,7 +35,7 @@
         </h1>
         <div class="message">
           <p>
-            Your carriage awaits, can't wait to see you on the isle! You look <b>GORGEOUS!</b>
+            Your carriage awaits, can't wait to see you on the aisle! You look <b>GORGEOUS!</b>
           </p>
           <p>
             Love, Matt x
