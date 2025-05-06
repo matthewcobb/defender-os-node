@@ -42,6 +42,7 @@ export const useRenogyStore = defineStore('renogy', () => {
   const isInitialized = ref(false);
   const isConnected = ref(false);
   const error = ref(null);
+
   const lastUpdatedTime = ref<Date | null>(null);
   // Getters
   const isFullyCharged = computed(() => {
@@ -69,7 +70,7 @@ export const useRenogyStore = defineStore('renogy', () => {
   });
 
   const currentPowerOutput = computed(() => {
-    return Math.abs((data.value?.pv_power ?? 0) - (data.value?.battery_power ?? 0));
+    return Number(Math.abs((data.value?.pv_power ?? 0) - (data.value?.battery_power ?? 0)).toFixed(2));
   });
 
   const solarPowerPercentage = computed(() => {
