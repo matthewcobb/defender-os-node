@@ -1,32 +1,34 @@
 """
-Service for handling Renogy device connections and data retrieval
+Service for handling Renogy device connections and data retrieval using the simplified renogybt library
 """
 import logging
 import asyncio
-from renogybt import RoverClient, BatteryClient, LipoModel
-from renogybt.DeviceManager import DeviceManager
-from config.settings import DCDC_CONFIG, BATTERY_CONFIG
-from controllers.socketio_controller import emit_event
 import datetime
+from typing import Dict, Any, Optional
+
+# Import from the simplified library
+from renogybt import DeviceManager, RoverDevice, BatteryDevice, LipoModel
+from config.settings import DCDC_CONFIG, BATTERY_CONFIG, POLL_INTERVAL, TEMPERATURE_UNIT
+from controllers.socketio_controller import emit_event
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 class RenogyService:
-    """Manages Renogy devices and provides data to the application"""
+    """Manages Renogy devices using simplified library and provides data to the application"""
 
     def __init__(self):
         """Initialize the service"""
         # Create device manager
         self.device_manager = DeviceManager()
 
-        # Create model
+        # Create battery model calculator
         self.lipo_model = LipoModel()
 
         # Data storage
         self.data = {
-            'rng_ctrl': None,
-            'rng_batt': None,
+            'dcdc': None,
+            'battery': None,
             'combined': None
         }
 
@@ -39,19 +41,30 @@ class RenogyService:
         if self.initialized:
             return True
 
-        # Create clients
         try:
-            dcdc_client = RoverClient(DCDC_CONFIG)
-            battery_client = BatteryClient(BATTERY_CONFIG)
+            # Create devices
+            log.info("📱 Creating Renogy devices...")
 
-            # Add clients to manager
-            await self.device_manager.add_device('dcdc', dcdc_client)
-            await self.device_manager.add_device('battery', battery_client)
+            # Create the DCDC device
+            dcdc_device = RoverDevice(
+                mac_address=DCDC_CONFIG['mac_addr'],
+                name=DCDC_CONFIG['alias'],
+                device_id=DCDC_CONFIG['device_id']
+            )
 
-            # Add data handler
+            # Create the Battery device
+            battery_device = BatteryDevice(
+                mac_address=BATTERY_CONFIG['mac_addr'],
+                name=BATTERY_CONFIG['alias'],
+                device_id=BATTERY_CONFIG['device_id']
+            )
+
+            # Add devices to manager
+            await self.device_manager.add_device('dcdc', dcdc_device)
+            await self.device_manager.add_device('battery', battery_device)
+
+            # Register event handlers
             self.device_manager.add_data_handler(self.on_device_data)
-
-            # Add error handler
             self.device_manager.add_error_handler(self.on_device_error)
 
             log.info("🚀 RenogyService initialized")
@@ -81,31 +94,24 @@ class RenogyService:
                 self.running = False
                 return
 
-            # First, connect to all devices with retries
+            # Connect to all devices with retries
             log.info("🔌 Connecting to all devices...")
             max_attempts = 3
-            attempt = 0
 
-            while attempt < max_attempts:
-                if await self.device_manager.connect_all_devices():
-                    log.info("✅ Successfully connected to all devices")
-                    break
+            if await self.device_manager.connect_all_devices(max_attempts):
+                log.info("✅ Successfully connected to all devices")
 
-                attempt += 1
-                if attempt < max_attempts:
-                    log.warning(f"🔄 Not all devices connected, retrying... (attempt {attempt}/{max_attempts})")
-                    await asyncio.sleep(5)  # Wait before retrying
-                else:
-                    log.warning(f"⚠️ Failed to connect all devices after {max_attempts} attempts, continuing anyway")
+                # Start polling for connected devices
+                log.info("📊 Starting sequential polling...")
+                await self.device_manager.start_polling()
 
-            # Now start polling only connected devices
-            log.info("📊 Starting polling...")
-            await self.device_manager.start_polling()
+                # Create update loop task for data processing
+                self.update_task = asyncio.create_task(self._update_loop())
 
-            # Create update loop task for data processing
-            self.update_task = asyncio.create_task(self._update_loop())
-
-            log.info("✅ Renogy service started")
+                log.info("✅ Renogy service started")
+            else:
+                log.error("❌ Failed to connect to all devices, not starting update loop")
+                self.running = False
         except Exception as e:
             log.error(f"❌ Error starting Renogy service: {e}")
             self.running = False
@@ -114,17 +120,16 @@ class RenogyService:
         """Periodically update the model and emit data"""
         while self.running:
             try:
-                # Check if devices are still connected before trying to update
+                # Check if devices are still connected
                 dcdc_connected = self.device_manager.is_device_connected('dcdc')
                 battery_connected = self.device_manager.is_device_connected('battery')
 
                 # Only update if both devices are connected and we have data
-                if dcdc_connected and battery_connected and self.data['rng_ctrl'] and self.data['rng_batt']:
-                    # Update model with latest data
-                    self.lipo_model.update_data(self.data)
-                    combined_data = self.lipo_model.calculate()
+                if dcdc_connected and battery_connected and self.data['dcdc'] and self.data['battery']:
+                    # Use the LipoModel to combine data and calculate time estimates
+                    combined_data = self.lipo_model.calculate(self.data['dcdc'], self.data['battery'])
 
-                    if combined_data and not combined_data.get('error'):
+                    if combined_data and 'error' not in combined_data:
                         # Store for later retrieval
                         self.data['combined'] = combined_data
 
@@ -133,14 +138,14 @@ class RenogyService:
                         log.debug("📡 Emitted combined Renogy data")
                 elif not dcdc_connected or not battery_connected:
                     # Log which devices are disconnected
-                    log.debug(f"📵 Skipping update - disconnected devices: " +
+                    log.warning(f"📵 Skipping update - disconnected devices: " +
                               (f"DCDC, " if not dcdc_connected else "") +
                               (f"Battery" if not battery_connected else ""))
             except Exception as e:
                 log.error(f"❌ Error in update loop: {e}")
 
             # Wait before checking again
-            await asyncio.sleep(5)
+            await asyncio.sleep(1.5)
 
     async def stop(self):
         """Stop the Renogy service"""
@@ -162,16 +167,15 @@ class RenogyService:
 
         log.info("⏹️ Renogy service stopped")
 
-    async def on_device_data(self, device_key, device, data):
+    async def on_device_data(self, device_key: str, device: Any, data: Dict[str, Any]) -> None:
         """Handle data from devices"""
+        log.info(f"📥 Received data from {device_key} device: {data}")
         if device_key == 'dcdc':
-            self.data['rng_ctrl'] = data
-            log.debug(f"📥 Received data from DCDC device")
+            self.data['dcdc'] = data
         elif device_key == 'battery':
-            self.data['rng_batt'] = data
-            log.debug(f"📥 Received data from Battery device")
+            self.data['battery'] = data
 
-    async def on_device_error(self, device_key, device, error):
+    async def on_device_error(self, device_key: str, device: Any, error: str) -> None:
         """Handle device errors"""
         log.error(f"⚠️ Device error ({device_key}): {error}")
 
@@ -180,14 +184,14 @@ class RenogyService:
             'device': device_key,
             'message': error,
             'timestamp': str(datetime.datetime.now()),
-            'code': 'CONNECTION_LOST' if 'connection loss' in error else 'DEVICE_ERROR'
+            'code': 'CONNECTION_LOST' if 'connection loss' in str(error) else 'DEVICE_ERROR'
         })
 
-    def get_latest_data(self):
+    def get_latest_data(self) -> Optional[Dict[str, Any]]:
         """Get latest combined data"""
         return self.data.get('combined')
 
-    def get_device_status(self):
+    def get_device_status(self) -> Dict[str, bool]:
         """Get status of all devices"""
         return {
             'dcdc_connected': self.device_manager.is_device_connected('dcdc'),

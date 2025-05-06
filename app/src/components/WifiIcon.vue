@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { useWifi } from '../features';
 import { Wifi, WifiOff } from 'lucide-vue-next';
-import { socketEvents, initSocketIO } from '../features/system/services/socketio';
+import { socketEvents } from '../features/system/services/socketio';
 import { computed, onMounted, ref, onUnmounted } from 'vue';
 
 defineProps<{
@@ -20,9 +20,6 @@ defineProps<{
 defineEmits<{
   menuToggle: [menuName: string];
 }>();
-
-// Initialize socket connection
-initSocketIO();
 
 // Track wifi status
 const wifiStatus = ref<any>(null);

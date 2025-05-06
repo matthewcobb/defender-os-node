@@ -1,6 +1,6 @@
 import { ref, computed, readonly, onUnmounted } from 'vue';
 import { apiService } from '../services/api';
-import { socketEvents, initSocketIO, isConnected as isSocketConnected } from '../services/socketio';
+import { socketEvents, isConnected as isSocketConnected } from '../services/socketio';
 
 // Define types for WiFi data
 export interface WifiStatus {
@@ -33,9 +33,6 @@ const state = {
   password: ref<string>(''),
   wifiStatus: ref<WifiStatus | null>(null)
 };
-
-// Initialize socket connection outside the composable to ensure single instance
-initSocketIO();
 
 // Setup socket event listener once to avoid multiple handlers
 socketEvents.on('wifi:status_update', (data: WifiStatus) => {

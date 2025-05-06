@@ -1,23 +1,21 @@
 """
-Renogy Bluetooth Module for communication with Renogy solar charge controllers and batteries
+Simplified Renogy Bluetooth Module for communication with Renogy solar charge controllers and batteries
 """
 
-from .BaseClient import BaseClient
-from .RoverClient import RoverClient
-from .BatteryClient import BatteryClient
-from .InverterClient import InverterClient
-from .LipoModel import LipoModel
-from .DeviceManager import DeviceManager
-from .BleManager import BleManager
-
+from .device import Device
+from .manager import DeviceManager
+from .utils import bytes_to_int, crc16_modbus
+from .rover import RoverDevice
+from .battery import BatteryDevice
+from .lipo_model import LipoModel
 __all__ = [
-    'BaseClient',
-    'RoverClient',
-    'BatteryClient',
-    'InverterClient',
-    'LipoModel',
+    'Device',
     'DeviceManager',
-    'BleManager'
+    'RoverDevice',
+    'BatteryDevice',
+    'LipoModel',
+    'bytes_to_int',
+    'crc16_modbus'
 ]
 
-__version__ = '1.1.0'
+__version__ = '1.0.0'

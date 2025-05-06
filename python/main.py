@@ -10,12 +10,14 @@ from controllers.gpio_controller import gpio_bp, monitor_reverse_light, is_rever
 from controllers.socketio_controller import sio, sio_bp, update_last_state, emit_event
 from controllers.wifi_controller import wifi_bp, monitor_wifi_status
 from utils.middleware import add_cors_headers
-from services.renogy_simple_service import RenogySimpleService
+from utils.colored_logging import setup_colored_logging
+from services.renogy_service import RenogyService
 from services.wifi_service import get_wifi_status
 from config.settings import DEBUG, HOST, PORT
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+setup_colored_logging()  # Set up colored logging
 log = logging.getLogger('quart.app')
 log.setLevel(logging.INFO)
 
@@ -32,7 +34,7 @@ app.register_blueprint(wifi_bp)
 app.after_request(add_cors_headers)
 
 # Create global Renogy service instance for app access
-renogy_service = RenogySimpleService()
+renogy_service = RenogyService()
 
 # Connect to Renogy devices on startup
 @app.before_serving

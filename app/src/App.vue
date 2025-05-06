@@ -4,6 +4,7 @@
     <div class="carplay-container" ref="carplayContainer">
       <CarPlayDisplay v-if="width > 0" :width="width" :height="height" />
     </div>
+
     <ToastMessage
       :show="toastState.show"
       :text="toastState.text"

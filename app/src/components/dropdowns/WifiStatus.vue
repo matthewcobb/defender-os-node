@@ -3,7 +3,7 @@
     <!-- WiFi Status & Controls -->
     <div>
       <!-- Connected state -->
-      <div v-if="isConnected" class="wifi-connected">
+      <div v-if="isConnected" class="panel">
         <div class="status-indicator connected"></div>
         <div class="network-info">
           <p class="network-name">{{ currentNetwork }}</p>
@@ -19,13 +19,13 @@
       </div>
 
       <!-- Not connected state -->
-      <div v-else class="wifi-disconnected">
+      <div v-else class="panel">
         <div class="status-indicator disconnected"></div>
         <small>Not connected</small>
       </div>
 
       <!-- Favorite networks section -->
-      <div v-if="favoriteNetworks.length > 0" class="favorites-section">
+      <div v-if="favoriteNetworks.length > 0" class="panel">
         <h4>Favorite Networks</h4>
         <div class="favorites-list">
           <div
@@ -56,10 +56,10 @@
 
     <!-- Network Scanning Section -->
     <div class="scan-section">
-      <button class="btn btn-primary btn-sm" @click="scanForNetworks" :disabled="scanning">
+      <button class="btn btn-primary btn-full" @click="scanForNetworks" :disabled="scanning">
         {{ scanning ? 'Scanning...' : 'Scan for Networks' }}
       </button>
-      <div v-if="networks.length > 0" class="networks-list">
+      <div v-if="networks.length > 0" class="panel networks-list">
         <div
           v-for="(network, index) in networks"
           :key="index"
@@ -87,7 +87,7 @@
       </div>
 
       <!-- Connection Form -->
-      <div v-if="showingConnectForm" class="connect-form">
+      <div v-if="showingConnectForm" class="panel connect-form">
         <h4>Connect to {{ selectedNetwork }}</h4>
         <div class="form-group">
           <label for="password">Password:</label>
@@ -213,16 +213,12 @@ const connectToSelectedNetwork = async () => {
 </script>
 
 <style lang="scss" scoped>
-.wifi-status-dropdown {
-  min-width: 300px;
-  padding: 0.75rem;
-}
-
 .status-indicator {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   margin-right: 8px;
+  display: inline-block;
 
   &.connected {
     background-color: var(--success);
@@ -371,9 +367,5 @@ const connectToSelectedNetwork = async () => {
     justify-content: flex-end;
     gap: 0.5rem;
   }
-}
-
-button {
-  margin-left: 0.5rem;
 }
 </style>

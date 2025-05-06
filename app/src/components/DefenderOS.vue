@@ -5,22 +5,25 @@
       <router-link v-for="tab in tabs" :key="tab.path" :to="tab.path" class="tab">
         <component :is="tab.icon" :size="32" />
       </router-link>
+      <router-link v-if="weddingModeEnabled" to="/wedding" class="tab wedding-tab">
+        <Heart :size="32" />
+      </router-link>
     </nav>
-    <main class="content">
+    <div class="view-container">
       <router-view v-slot="{ Component, route }">
         <transition :name="transitionName">
           <component :is="Component" :key="route.path" />
         </transition>
       </router-view>
-    </main>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import TopBar from './TopBar.vue';
-import { CarFront, Bolt, Info, Video } from 'lucide-vue-next';
+import { CarFront, Bolt, Info, Video, Heart } from 'lucide-vue-next';
 import { useRoute } from 'vue-router';
-import { watch, ref, computed } from 'vue';
+import { watch, ref, computed, onMounted } from 'vue';
 
 // Define tabs with paths and icons in one place
 const tabs = [
@@ -29,6 +32,21 @@ const tabs = [
   { path: '/reverse', icon: Video },
   { path: '/about', icon: Info }
 ];
+
+// Check if wedding mode is enabled
+const weddingModeEnabled = ref(false);
+
+onMounted(() => {
+  // Check if wedding mode is enabled in localStorage
+  weddingModeEnabled.value = localStorage.getItem('weddingMode') === 'true';
+
+  // Listen for changes to wedding mode setting
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'weddingMode') {
+      weddingModeEnabled.value = event.newValue === 'true';
+    }
+  });
+});
 
 // Define tab routes based on the tabs array
 const tabRoutes = computed(() => tabs.map(tab => tab.path));
@@ -77,16 +95,6 @@ watch(() => route.path, (_, oldPath) => {
   color: white;
   overflow: hidden;
   border-radius: 1rem;
-  animation: loading 0.4s ease-out, gradient 15s ease infinite;
-
-  @keyframes loading {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
 
   @keyframes gradient {
     0% {
@@ -138,7 +146,7 @@ watch(() => route.path, (_, oldPath) => {
   }
 }
 
-.content {
+.view-container {
   width: 100%;
   height: calc(100vh - var(--top-bar-height)); /* Fills the remaining vertical space */
   position: relative;

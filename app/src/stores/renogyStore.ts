@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { socketEvents, initSocketIO } from '../features/system/services/socketio';
+import { socketEvents } from '../features/system/services/socketio';
 
 // Define interface for Renogy data
 export interface RenogyData {
@@ -42,6 +42,7 @@ export const useRenogyStore = defineStore('renogy', () => {
   const isInitialized = ref(false);
   const isConnected = ref(false);
   const error = ref(null);
+  const lastUpdatedTime = ref<Date | null>(null);
   // Getters
   const isFullyCharged = computed(() => {
     return (data.value?.remaining_charge ?? 0) > 99.5;
@@ -76,6 +77,13 @@ export const useRenogyStore = defineStore('renogy', () => {
     const maxPower = 200; // Supply on roof
     const percentage = (currentPower / maxPower) * 100;
     return Math.min(percentage, 100); // Cap at 100%
+  });
+
+  const formattedLastUpdatedTime = computed(() => {
+    if (!lastUpdatedTime.value) return 'Not updated yet';
+
+    // Format the time as HH:MM:SS
+    return lastUpdatedTime.value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   });
 
   // Helper functions
@@ -122,6 +130,7 @@ export const useRenogyStore = defineStore('renogy', () => {
     if (receivedData && typeof receivedData === 'object') {
       devicesReady.value = true;
       data.value = receivedData;
+      lastUpdatedTime.value = new Date();
     }
   };
 
@@ -134,9 +143,6 @@ export const useRenogyStore = defineStore('renogy', () => {
   // Initialize Socket.IO and set up event listeners
   const init = () => {
     if (isInitialized.value) return;
-
-    // Initialize the Socket.IO connection
-    initSocketIO();
 
     // Set up event listeners
     socketEvents.on('connected', handleConnectionChange);
@@ -160,6 +166,8 @@ export const useRenogyStore = defineStore('renogy', () => {
     error,
     devicesReady,
     isConnected,
+    lastUpdatedTime,
+    formattedLastUpdatedTime,
 
     // Getters
     isFullyCharged,

@@ -1,5 +1,5 @@
 import { ref, onMounted, onUnmounted } from 'vue';
-import { socketEvents, initSocketIO, sendMessage } from '../services/socketio';
+import { socketEvents, sendMessage } from '../services/socketio';
 
 export interface UpdateStatus {
   overall_status: 'not_started' | 'in_progress' | 'complete' | 'failed';
@@ -39,9 +39,6 @@ export function useSystemUpdates() {
   };
 
   onMounted(() => {
-    // Make sure Socket.IO is initialized
-    initSocketIO();
-
     // Subscribe to Socket.IO events
     socketEvents.on('system:update_status', handleUpdateStatus);
     socketEvents.on('system:initial_state', handleUpdateStatus);

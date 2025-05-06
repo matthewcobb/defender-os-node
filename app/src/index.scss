@@ -1,3 +1,16 @@
+@use './styles/type';
+@use './styles/panel';
+@use './styles/components';
+@use './styles/grid';
+@use './styles/buttons';
+@use './styles/transitions';
+// @use './styles/spacing';
+// @use './styles/border';
+// @use './styles/progress';
+
+// @use './styles/components/loading-video';
+// @use './styles/components/launcher';
+
 :root {
   --body-bg: #000000;
   --primary: #36d34b;
@@ -19,19 +32,6 @@
   // Sizes
   --top-bar-height: 3rem;
 }
-
-@import './styles/type';
-@import './styles/panel';
-@import './styles/components';
-@import './styles/grid';
-@import './styles/buttons';
-@import './styles/transitions';
-// @import './styles/spacing';
-// @import './styles/border';
-// @import './styles/progress';
-
-// @import './styles/components/loading-video';
-// @import './styles/components/launcher';
 
 .app {
   animation: app-entrance 2s ease-in-out;
@@ -94,7 +94,9 @@ body {
   box-sizing: border-box;
   height: 100%;
   overflow-y: auto;
-  overflow-x: hidden;
   box-sizing: border-box;
-  padding-bottom: 5rem;
+
+  main {
+    padding-bottom: 5rem;
+  }
 }

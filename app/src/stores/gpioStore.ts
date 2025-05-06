@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { socketEvents, initSocketIO } from '../features/system/services/socketio';
+import { socketEvents } from '../features/system/services/socketio';
 
 export const useGpioStore = defineStore('gpio', () => {
   // State
@@ -42,9 +42,6 @@ export const useGpioStore = defineStore('gpio', () => {
     if (routerInstance) {
       router = routerInstance;
     }
-
-    // Make sure Socket.IO is initialized
-    initSocketIO();
 
     // Set up event listeners for GPIO-related events
     socketEvents.on('gpio:reverse_state_change', handleReverseStateChange);

@@ -5,6 +5,10 @@
         DEFENDER<span class="fgColor-muted">OS</span>
       </p>
       <div class="menu-items">
+        <SocketStatus
+          :is-active="isMenuActive('socket-status')"
+          @menu-toggle="handleMenuToggle"
+        />
         <CpuTemp />
         <WifiIcon
           :is-active="isMenuActive('wifi-status')"
@@ -42,15 +46,18 @@
 import { onMounted, onUnmounted } from 'vue';
 import WifiIcon from './WifiIcon.vue';
 import CpuTemp from './CpuTemp.vue';
+import SocketStatus from './SocketStatus.vue';
 import { useMenuItems } from '../features/ui';
 import { X } from 'lucide-vue-next';
 import WifiStatus from './dropdowns/WifiStatus.vue';
+import SocketDetails from './dropdowns/SocketDetails.vue';
 
 const { activeMenuItem, openMenuItem, closeMenuItem } = useMenuItems();
 
 // Menu titles mapping
 const menuTitles: Record<string, string> = {
-  'wifi-status': 'WiFi Status'
+  'wifi-status': 'WiFi Status',
+  'socket-status': 'Socket.IO Status'
 };
 
 // Check if a specific menu is active
@@ -92,7 +99,8 @@ onUnmounted(() => {
 // Resolve component name to actual component
 const resolveComponent = (componentName: string) => {
   const components: Record<string, any> = {
-    'wifi-status': WifiStatus
+    'wifi-status': WifiStatus,
+    'socket-status': SocketDetails
     // Add more components as needed
   };
 

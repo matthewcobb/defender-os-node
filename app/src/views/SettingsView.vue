@@ -1,9 +1,9 @@
 <template>
   <div class="view">
-    <div class="settings-view">
+    <main class="settings-view">
       <SystemPanel />
       <CameraPanel />
-    </div>
+    </main>
   </div>
 </template>
 

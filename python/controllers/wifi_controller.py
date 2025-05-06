@@ -82,8 +82,8 @@ async def monitor_wifi_status():
                 await emit_event('wifi', 'status_update', current_status)
                 last_wifi_status = current_status
 
-            # Wait before checking again
-            await asyncio.sleep(2)  # Check every 2 seconds for better real-time updates
+            # Wait before checking again - still check frequently but only emit on changes
+            await asyncio.sleep(5)  # Increased from 2 to 5 seconds to reduce overhead
 
         except Exception as e:
             log.error(f"Error in WiFi status monitoring: {e}")
