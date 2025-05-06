@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for the simplified renogybt_simple library.
+Test script for the simplified renogybt library.
 This provides a command-line interface to test connectivity to Renogy devices.
 """
 
@@ -10,7 +10,7 @@ import argparse
 import json
 from typing import Dict, Any
 
-from renogybt_simple import DeviceManager, RoverDevice, BatteryDevice
+from renogybt import DeviceManager, RoverDevice, BatteryDevice
 from config.settings import DCDC_CONFIG, BATTERY_CONFIG
 
 # Configure logging

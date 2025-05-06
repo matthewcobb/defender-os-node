@@ -5,9 +5,11 @@
   color: var(--btn-color);
   border-radius: 50cqh;
   padding: 0.5rem 1rem;
+  text-align: center;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.8rem;
+  box-sizing: border-box;
 
   &:hover {
     background-color: var(--btn-color);
@@ -22,6 +24,10 @@
   &.btn-lg {
     font-size: 1.25rem;
     padding: 0.75rem 1.5rem;
+  }
+
+  &.btn-full {
+    width: 100%;
   }
 }
 

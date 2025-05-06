@@ -9,13 +9,13 @@
         <Heart :size="32" />
       </router-link>
     </nav>
-    <main class="content">
+    <div class="view-container">
       <router-view v-slot="{ Component, route }">
         <transition :name="transitionName">
           <component :is="Component" :key="route.path" />
         </transition>
       </router-view>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -146,7 +146,7 @@ watch(() => route.path, (_, oldPath) => {
   }
 }
 
-.content {
+.view-container {
   width: 100%;
   height: calc(100vh - var(--top-bar-height)); /* Fills the remaining vertical space */
   position: relative;

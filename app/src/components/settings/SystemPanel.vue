@@ -33,15 +33,6 @@
       </div>
     </div>
 
-    <!-- Wedding Mode Toggle -->
-    <div class="setting-item">
-      <h4>Wedding Mode</h4>
-      <label class="toggle-switch">
-        <input type="checkbox" v-model="weddingMode" @change="saveWeddingMode">
-        <span class="slider"></span>
-      </label>
-    </div>
-
     <div class="setting-item">
       <h4>Close</h4>
       <button class="btn btn-danger" @click="closeKiosk" :disabled="isClosingKiosk">
@@ -50,6 +41,15 @@
     </div>
     <div v-if="kioskMessage" class="update-message" :class="{ 'update-error': kioskError }">
       {{ kioskMessage }}
+    </div>
+
+    <!-- Wedding Mode Toggle -->
+    <div class="setting-item">
+      <h4>Wedding Mode</h4>
+      <label class="toggle-switch">
+        <input type="checkbox" v-model="weddingMode" @change="saveWeddingMode">
+        <span class="slider"></span>
+      </label>
     </div>
   </div>
 </template>

@@ -1,5 +1,5 @@
 """
-Utility functions for the renogybt_simple library
+Utility functions for the renogybt library
 """
 
 def bytes_to_int(bs, offset, length, signed=False, scale=1):

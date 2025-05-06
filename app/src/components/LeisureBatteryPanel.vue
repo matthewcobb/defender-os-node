@@ -59,5 +59,4 @@ const renogyStore = useRenogyStore();
 </script>
 
 <style lang="scss" scoped>
-
 </style>

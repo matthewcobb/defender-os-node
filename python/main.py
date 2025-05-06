@@ -11,7 +11,7 @@ from controllers.socketio_controller import sio, sio_bp, update_last_state, emit
 from controllers.wifi_controller import wifi_bp, monitor_wifi_status
 from utils.middleware import add_cors_headers
 from utils.colored_logging import setup_colored_logging
-from services.renogy_simple_service import RenogySimpleService
+from services.renogy_service import RenogyService
 from services.wifi_service import get_wifi_status
 from config.settings import DEBUG, HOST, PORT
 
@@ -34,7 +34,7 @@ app.register_blueprint(wifi_bp)
 app.after_request(add_cors_headers)
 
 # Create global Renogy service instance for app access
-renogy_service = RenogySimpleService()
+renogy_service = RenogyService()
 
 # Connect to Renogy devices on startup
 @app.before_serving

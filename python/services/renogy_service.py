@@ -1,5 +1,5 @@
 """
-Service for handling Renogy device connections and data retrieval using the simplified renogybt_simple library
+Service for handling Renogy device connections and data retrieval using the simplified renogybt library
 """
 import logging
 import asyncio
@@ -7,14 +7,14 @@ import datetime
 from typing import Dict, Any, Optional
 
 # Import from the simplified library
-from renogybt_simple import DeviceManager, RoverDevice, BatteryDevice, LipoModel
+from renogybt import DeviceManager, RoverDevice, BatteryDevice, LipoModel
 from config.settings import DCDC_CONFIG, BATTERY_CONFIG, POLL_INTERVAL, TEMPERATURE_UNIT
 from controllers.socketio_controller import emit_event
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-class RenogySimpleService:
+class RenogyService:
     """Manages Renogy devices using simplified library and provides data to the application"""
 
     def __init__(self):
@@ -67,11 +67,11 @@ class RenogySimpleService:
             self.device_manager.add_data_handler(self.on_device_data)
             self.device_manager.add_error_handler(self.on_device_error)
 
-            log.info("🚀 RenogySimpleService initialized")
+            log.info("🚀 RenogyService initialized")
             self.initialized = True
             return True
         except Exception as e:
-            log.error(f"❌ Error initializing RenogySimpleService: {e}")
+            log.error(f"❌ Error initializing RenogyService: {e}")
             return False
 
     def start(self):
@@ -100,17 +100,18 @@ class RenogySimpleService:
 
             if await self.device_manager.connect_all_devices(max_attempts):
                 log.info("✅ Successfully connected to all devices")
+
+                # Start polling for connected devices
+                log.info("📊 Starting sequential polling...")
+                await self.device_manager.start_polling()
+
+                # Create update loop task for data processing
+                self.update_task = asyncio.create_task(self._update_loop())
+
+                log.info("✅ Renogy service started")
             else:
-                log.warning(f"⚠️ Not all devices connected after {max_attempts} attempts, continuing anyway")
-
-            # Start polling for connected devices
-            log.info("📊 Starting sequential polling...")
-            await self.device_manager.start_polling()
-
-            # Create update loop task for data processing
-            self.update_task = asyncio.create_task(self._update_loop())
-
-            log.info("✅ Renogy service started")
+                log.error("❌ Failed to connect to all devices, not starting update loop")
+                self.running = False
         except Exception as e:
             log.error(f"❌ Error starting Renogy service: {e}")
             self.running = False

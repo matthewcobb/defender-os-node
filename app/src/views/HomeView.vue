@@ -1,6 +1,6 @@
 <template>
   <div class="view">
-    <div class="home-view">
+    <main>
       <div class="battery-status" :class="{ 'disconnected': !renogyStore.devicesReady }">
         <LeisureBatteryPanel
           @click="navigateToBattery"
@@ -8,8 +8,11 @@
         <SolarPanel
           @click="navigateToSolar"
         />
+        <p v-if="renogyStore.devicesReady" class="last-updated">
+          {{ renogyStore.formattedLastUpdatedTime }}
+        </p>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -63,11 +66,6 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.home-view {
-  width: 100%;
-  height: 100%;
-}
-
 .battery-status {
   display: grid;
   grid-template-columns: 1fr;
@@ -76,5 +74,12 @@ onUnmounted(() => {
   &.disconnected {
     opacity: 0.5;
   }
+}
+
+.last-updated {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--fgColor-muted);
 }
 </style>

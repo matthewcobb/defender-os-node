@@ -1,4 +1,4 @@
-# renogybt_simple
+# renogybt
 
 A simplified, modular, and efficient library for communicating with Renogy solar charge controllers and batteries via Bluetooth.
 
@@ -58,7 +58,7 @@ For Renogy LFP (Lithium) batteries:
 
 ## Comparison with Original renogybt
 
-| Feature | renogybt_simple | Original renogybt |
+| Feature | renogybt | Original renogybt |
 |---------|----------------|-------------------|
 | Architecture | Modular (connection, device, manager) | Mixed concerns |
 | API Style | Modern async/await | Callback-driven |
@@ -74,8 +74,8 @@ For Renogy LFP (Lithium) batteries:
 
 ```python
 import asyncio
-from renogybt_simple import DeviceManager
-from renogybt_simple import RoverDevice
+from renogybt import DeviceManager
+from renogybt import RoverDevice
 
 # Create device and manager
 manager = DeviceManager()
@@ -100,8 +100,8 @@ await manager.start_polling()
 
 ```python
 import asyncio
-from renogybt_simple import DeviceManager
-from renogybt_simple import BatteryDevice
+from renogybt import DeviceManager
+from renogybt import BatteryDevice
 
 # Create device and manager
 manager = DeviceManager()
